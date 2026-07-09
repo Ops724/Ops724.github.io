@@ -8,6 +8,13 @@
 - 你的真实文章、About 内容、头像与个性化配置只保存在本地
 - 发布时把本地私有内容合并进去，再生成并推送到 `gh-pages`
 
+如果你已经决定把个人内容留在本地，那么你之后最常用的命令通常就是：
+
+```bash
+npm run server:private
+npm run deploy:private
+```
+
 ## 核心规则
 
 会被 Git 忽略：
@@ -111,6 +118,8 @@ npm run server:private
 ```bash
 npm run deploy:private
 ```
+
+更完整的发布说明见 [DEPLOY.md](/Users/chen/code/ops724blog/DEPLOY.md)。
 
 ## 示例内容说明
 
