@@ -1,5 +1,9 @@
 # Hexo 博客实现蓝图
 
+这份文档保留为项目的设计蓝图与实现基线说明。
+
+它主要回答“这个博客为什么这样设计、当前结构大体如何组织”，不承担日常使用说明职责。日常操作请优先参考 `README.md`、`DEPLOY.md` 与 `PRIVATE_CONTENT.md`。
+
 ## 目标
 
 构建一个基于 Hexo 的双语个人博客，满足以下核心特征：
@@ -77,12 +81,27 @@
 
 ```text
 ops724blog/
+├── README.md
+├── DEPLOY.md
 ├── _config.yml
+├── _config.private-template.yml
 ├── package.json
 ├── PLAN.md
+├── PRIVATE_CONTENT.md
 ├── scaffolds/
 │   ├── post.md
 │   └── page.md
+├── source-local.example/
+│   ├── _data/
+│   │   └── profile.yml
+│   ├── _posts/
+│   │   ├── zh/
+│   │   └── en/
+│   ├── about/
+│   │   └── index.md
+│   ├── en/
+│   │   └── about/index.md
+│   └── images/
 ├── source/
 │   ├── _data/
 │   │   ├── navigation.yml
@@ -98,12 +117,14 @@ ops724blog/
 │   ├── tags/
 │   │   └── index.md
 │   ├── en/
+│   │   ├── index.md
 │   │   ├── about/index.md
 │   │   ├── categories/index.md
 │   │   └── tags/index.md
 │   └── images/
-│       └── avatar.jpg
-└── themes/
+│       ├── avatar-placeholder.svg
+│       └── avatar-square.svg
+├── themes/
     └── ops724-white/
         ├── _config.yml
         ├── languages/
@@ -139,7 +160,16 @@ ops724blog/
             │   ├── layout.css
             │   ├── components.css
             │   └── content.css
+└── tools/
+    └── private-build.mjs
 ```
+
+补充说明：
+
+- `source/` 中保留的是公开框架示例内容
+- `source-local/` 与 `_config.local.yml` 是本地私有层，不进入版本库
+- `source-local.example/` 只提供私有内容模板
+- `tools/private-build.mjs` 负责把公开框架与本地私有内容合并后再构建或发布
 
 ## 双语策略
 
@@ -237,10 +267,10 @@ tags:
 ### 局部组件
 
 - `head.ejs`：页面元信息、标题、样式引入
-- `header.ejs`：站点导航
+- `header.ejs`：站点导航、头像、站点标题与语言切换
 - `footer.ejs`：页脚
 - `language-switcher.ejs`：中英文切换
-- `profile-card.ejs`：方形头像、标题、简介
+- `profile-card.ejs`：预留的作者信息组件草稿，当前主布局未启用
 - `post-list.ejs`：文章列表
 - `post-meta.ejs`：日期、分类、标签
 - `pagination.ejs`：上一篇/下一篇
@@ -367,6 +397,14 @@ Filters：
 - 所在地
 - 邮箱或联系方式
 
+当前已实际用于：
+
+- 站点标题
+- 副标题
+- 头像路径
+
+其中 `location` 与 `email` 目前仍属于预留字段。
+
 ### `source/_data/navigation.yml`
 
 存放：
@@ -382,6 +420,8 @@ Filters：
 - GitHub
 - 邮箱
 - 其他可选社交链接
+
+当前版本中该文件已保留，但主题尚未消费这部分数据。
 
 ## Scaffold 规划
 
@@ -417,53 +457,64 @@ Filters：
 - 文章页同时兼顾生活写作与技术写作
 - V1 不引入侧边栏
 - 导航保持少量且稳定
+- 公开仓库存放框架与示例内容，真实个人内容保留在本地私有层
+- `main` 保存源码与文档，`gh-pages` 只保存生成后的静态站点
 
-## 执行阶段
+## 实施状态
+
+以下阶段已基本完成，可视为当前项目的落地记录。
 
 ### 阶段 1：项目初始化
 
-- 初始化 Hexo 项目
-- 安装基础依赖
-- 建立自定义主题骨架
-- 配置双语站点基础设置
+- 已完成 Hexo 项目初始化
+- 已完成基础依赖安装
+- 已完成自定义主题骨架
+- 已完成双语基础配置
 
 ### 阶段 2：主题基础
 
-- 建立整体布局骨架
-- 加入页头和页脚
-- 接入作者信息区
-- 配置主题级 i18n
-- 建立基础字体与留白系统
+- 已建立整体布局骨架
+- 已加入页头和页脚
+- 已将头像、站点标题和导航整合进页头
+- 已完成主题级 i18n
+- 已建立基础留白和排版系统
 
 ### 阶段 3：核心页面
 
-- 实现首页
-- 实现 About 页
-- 实现分类页
-- 实现标签页
-- 实现文章页
+- 已实现首页
+- 已实现 About 页
+- 已实现分类页
+- 已实现标签页
+- 已实现文章页
 
 ### 阶段 4：内容体验
 
-- 增加语法高亮
-- 优化代码块样式
-- 实现文章图片默认居中且全宽
-- 完善 Markdown 内容样式
-- 增加分页和前后文章导航
+- 已接入语法高亮
+- 已优化代码块样式
+- 已实现文章图片默认居中且全宽
+- 已完善基础 Markdown 内容样式
+- 已增加前后文章导航
 
 ### 阶段 5：双语逻辑
 
-- 增加语言切换
-- 使用 `translation_key` 配对文章
-- 保证每种语言只展示对应内容
-- 验证路由一致性
+- 已增加语言切换
+- 已使用 `translation_key` 配对文章
+- 已保证每种语言只展示对应内容
+- 已验证主要路由一致性
 
 ### 阶段 6：初始化内容
 
-- 增加中英文 About 页面
-- 增加一篇中文示例文章
-- 增加一篇英文示例文章
-- 增加头像资源和基础 profile 数据
+- 已增加中英文 About 示例页
+- 已增加中英文示例文章
+- 已增加头像资源和基础 profile 数据
+- 已明确区分“公开示例内容”与“本地私有真实内容”
+
+### 阶段 7：发布与私有内容层
+
+- 已建立 `main -> gh-pages` 发布链路
+- 已增加 `deploy:private`、`server:private`、`build:private`
+- 已建立 `source-local/` 与 `_config.local.yml` 的本地私有工作流
+- 已补齐 README、发布说明和私有内容说明文档
 
 ## 验收清单
 
@@ -477,10 +528,11 @@ Filters：
 - 语言切换对静态页面和成对文章都可用
 - 主题结构清晰、便于后续扩展
 
-## 下一步
+## 后续可能演进
 
-在这份蓝图通过后，最合适的下一步是：
+如果后续继续迭代，这份项目更适合考虑这些方向：
 
-1. 初始化 Hexo 项目
-2. 建立自定义主题骨架
-3. 增加双语基础配置
+1. 将 `social.yml` 真正接入主题展示
+2. 补充更贴近真实写作习惯的文章 scaffold
+3. 为中英文配对文章增加更明确的译文入口提示
+4. 按你的真实内容继续细化分类与标签策略
