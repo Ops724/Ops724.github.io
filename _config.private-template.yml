@@ -1,0 +1,25 @@
+# 本地私有配置模板
+# 使用方法：
+# 1. 复制本文件为 `_config.local.yml`
+# 2. 在 `_config.local.yml` 中写入你的个性化配置
+# 3. `_config.local.yml` 已被 Git 忽略，不会进入远程仓库
+
+# 最常见的覆盖项：
+#
+# title: OPS724 Blog
+# subtitle: ''
+# description: 关于生活、技术与长期写作的个人记录
+# author: Ops724
+# keywords:
+#   - blog
+#   - life
+#   - tech
+#
+# 如果你有自己的域名，也可以在这里覆盖：
+#
+# url: https://your-domain.com
+# root: /
+#
+# 如果你想调整分页数量，也可以写：
+#
+# per_page: 12

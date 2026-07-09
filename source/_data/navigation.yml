@@ -1,0 +1,18 @@
+items:
+  - label_key: nav.home
+    paths:
+      zh-CN: /
+      en: /en/
+  - label_key: nav.about
+    paths:
+      zh-CN: /about/
+      en: /en/about/
+  - label_key: nav.categories
+    paths:
+      zh-CN: /categories/
+      en: /en/categories/
+  - label_key: nav.tags
+    paths:
+      zh-CN: /tags/
+      en: /en/tags/
+

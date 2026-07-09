@@ -1,0 +1,17 @@
+<section class="content-section">
+  <header class="section-heading">
+    <h1><%= page.title %></h1>
+    <p><%= __('ui.categories_intro') %></p>
+  </header>
+  <div class="taxonomy-list">
+    <% site.categories.sort('name').forEach(function(category) { %>
+      <a class="taxonomy-item" href="<%- url_for(category.path) %>">
+        <span><%= category.name %></span>
+        <span><%= category.length %></span>
+      </a>
+    <% }) %>
+  </div>
+  <div class="article-body">
+    <%- page.content %>
+  </div>
+</section>

@@ -1,0 +1,29 @@
+{
+  "name": "ops724blog",
+  "version": "0.1.0",
+  "private": true,
+  "hexo": {
+    "version": "8.1.2"
+  },
+  "scripts": {
+    "build": "hexo generate",
+    "build:private": "node tools/private-build.mjs build",
+    "clean": "hexo clean",
+    "deploy": "hexo clean && hexo generate && hexo deploy",
+    "deploy:private": "node tools/private-build.mjs deploy",
+    "server": "hexo server",
+    "server:private": "node tools/private-build.mjs server"
+  },
+  "dependencies": {
+    "hexo": "^8.0.0",
+    "hexo-cli": "^4.3.2",
+    "hexo-deployer-git": "^4.0.0",
+    "hexo-generator-archive": "^2.0.0",
+    "hexo-generator-category": "^2.0.0",
+    "hexo-generator-index": "^4.0.0",
+    "hexo-generator-tag": "^2.0.0",
+    "hexo-renderer-ejs": "^2.0.0",
+    "hexo-renderer-marked": "^7.0.0",
+    "hexo-server": "^3.0.0"
+  }
+}

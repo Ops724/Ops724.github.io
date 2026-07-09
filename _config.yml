@@ -1,0 +1,88 @@
+# Site
+title: OPS724 Blog
+subtitle: ''
+description: A bilingual personal blog for life notes and technical writing.
+keywords:
+author: ops724
+language:
+  - zh-CN
+  - en
+timezone: Asia/Shanghai
+
+# URL
+url: https://Ops724.github.io
+root: /
+permalink: posts/:slug/
+permalink_defaults:
+pretty_urls:
+  trailing_index: false
+  trailing_html: false
+
+# Directory
+source_dir: source
+public_dir: public
+tag_dir: tags
+archive_dir: archives
+category_dir: categories
+code_dir: downloads/code
+i18n_dir: :lang
+skip_render:
+
+# Writing
+new_post_name: :title.md
+default_layout: post
+titlecase: false
+external_link:
+  enable: true
+  field: site
+  exclude: ''
+filename_case: 0
+render_drafts: false
+post_asset_folder: true
+relative_link: false
+future: true
+syntax_highlighter: prismjs
+highlight:
+  enable: false
+prismjs:
+  preprocess: true
+  line_number: false
+  tab_replace: ''
+
+# Home page setting
+index_generator:
+  path: ''
+  per_page: 10
+  order_by: -date
+
+# Category & Tag
+default_category: Notes
+category_map:
+tag_map:
+
+# Metadata
+meta_generator: true
+
+# Date / Time format
+date_format: YYYY-MM-DD
+time_format: HH:mm:ss
+updated_option: 'mtime'
+
+# Pagination
+per_page: 10
+pagination_dir: page
+
+# Include / Exclude file(s)
+include:
+exclude:
+ignore:
+
+# Extensions
+theme: ops724-white
+
+# Deployment
+deploy:
+  type: git
+  repo: git@github.com:Ops724/Ops724.github.io.git
+  branch: gh-pages
+  message: "Site updated: {{ now('YYYY-MM-DD HH:mm:ss') }}"

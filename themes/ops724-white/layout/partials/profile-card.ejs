@@ -1,0 +1,16 @@
+<% const currentLang = page_lang(page); %>
+<% if (site.data.profile.avatar) { %>
+  <img
+    class="profile-avatar"
+    src="<%- url_for(site.data.profile.avatar) %>"
+    alt="<%= site.data.profile.site_name[currentLang] %>"
+  >
+<% } else { %>
+  <div class="profile-avatar profile-avatar-placeholder" aria-hidden="true">
+    <span>OPS724</span>
+  </div>
+<% } %>
+<div class="profile-copy">
+  <h1><%= site.data.profile.site_name[currentLang] %></h1>
+  <p class="profile-tagline"><%= site.data.profile.tagline[currentLang] %></p>
+</div>

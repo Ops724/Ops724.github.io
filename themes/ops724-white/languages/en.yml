@@ -1,0 +1,15 @@
+nav.home: Home
+nav.about: About
+nav.categories: Categories
+nav.tags: Tags
+ui.read_more: Read more
+ui.no_posts: No posts yet.
+ui.latest_posts: Latest Posts
+ui.language_zh: 中
+ui.language_en: EN
+ui.categories_intro: Start with life and tech, then keep the structure lean.
+ui.tags_intro: Tags support discovery, not primary navigation.
+ui.back_home: Back Home
+ui.translation: Language
+ui.previous: Previous
+ui.next: Next

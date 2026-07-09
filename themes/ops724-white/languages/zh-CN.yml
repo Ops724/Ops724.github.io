@@ -1,0 +1,15 @@
+nav.home: 首页
+nav.about: 关于
+nav.categories: 分类
+nav.tags: 标签
+ui.read_more: 阅读全文
+ui.no_posts: 暂时还没有文章。
+ui.latest_posts: 最新文章
+ui.language_zh: 中
+ui.language_en: EN
+ui.categories_intro: 从生活与技术出发，保持结构简单。
+ui.tags_intro: 用标签做补充检索，而不是替代导航。
+ui.back_home: 返回首页
+ui.translation: 切换语言
+ui.previous: 上一篇
+ui.next: 下一篇

@@ -1,0 +1,34 @@
+<% const currentLang = page_lang(page); %>
+<header class="site-header">
+  <div class="site-header-inner">
+    <div class="site-header-profile">
+      <a class="site-avatar-link" href="<%- url_for(currentLang === 'en' ? '/en/' : '/') %>">
+        <% if (site.data.profile.avatar) { %>
+          <img
+            class="site-header-avatar"
+            src="<%- url_for(site.data.profile.avatar) %>"
+            alt="<%= site.data.profile.site_name[currentLang] %>"
+          >
+        <% } else { %>
+          <div class="site-header-avatar site-header-avatar-placeholder" aria-hidden="true"></div>
+        <% } %>
+      </a>
+      <div class="site-identity">
+        <a class="site-brand" href="<%- url_for(currentLang === 'en' ? '/en/' : '/') %>">
+          <%= site.data.profile.site_name[currentLang] %>
+        </a>
+        <p class="site-tagline"><%= site.data.profile.tagline[currentLang] %></p>
+      </div>
+    </div>
+    <div class="site-header-actions">
+      <nav class="site-nav" aria-label="Main">
+        <% site.data.navigation.items.forEach(function(item) { %>
+          <a href="<%- url_for(item.paths[currentLang]) %>"><%= __(item.label_key) %></a>
+        <% }) %>
+      </nav>
+      <% if (theme.menu.show_language_switcher) { %>
+        <%- partial('partials/language-switcher') %>
+      <% } %>
+    </div>
+  </div>
+</header>

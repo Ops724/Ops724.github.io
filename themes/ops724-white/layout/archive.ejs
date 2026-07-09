@@ -1,0 +1,7 @@
+<section class="content-section">
+  <header class="section-heading">
+    <h1><%= page.title || config.title %></h1>
+  </header>
+  <%- partial('partials/post-list', { localizedPosts: posts_by_lang(page_lang(page)) }) %>
+</section>
+

@@ -1,0 +1,181 @@
+.article {
+  margin-top: var(--space-5);
+}
+
+.article-header {
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--line);
+}
+
+.article-header h1 {
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  letter-spacing: -0.03em;
+  margin-bottom: 0.9rem;
+}
+
+.post-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem 1.1rem;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 1.2rem;
+}
+
+.article-body {
+  font-size: 1rem;
+  color: #2a2a2a;
+}
+
+.article-body > *:last-child {
+  margin-bottom: 0;
+}
+
+.article-body h2,
+.article-body h3,
+.article-body h4 {
+  margin-top: var(--space-4);
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.article-body h2 {
+  font-size: 1.9rem;
+}
+
+.article-body h3 {
+  font-size: 1.45rem;
+}
+
+.article-body p,
+.article-body ul,
+.article-body ol {
+  margin-bottom: 1.35rem;
+}
+
+.article-body img {
+  margin: var(--space-4) auto;
+  border: 1px solid var(--line);
+  background: #ffffff;
+  padding: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+.article-body .image-caption,
+.article-body figcaption {
+  margin-top: -0.7rem;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.article-body pre {
+  overflow-x: auto;
+  padding: 1.15rem 1.2rem;
+  background: #fafafa;
+  border: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: 0.92rem;
+  line-height: 1.7;
+  margin: 1.8rem 0;
+}
+
+.article-body code {
+  font-family: var(--font-mono);
+}
+
+.article-body :not(pre) > code {
+  padding: 0.14rem 0.35rem;
+  background: #f7f7f7;
+  border: 1px solid #ececec;
+  font-size: 0.92em;
+}
+
+.article-body pre code {
+  display: block;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  font-size: inherit;
+  color: #2b2b2b;
+}
+
+.article-body .token.comment,
+.article-body .token.prolog,
+.article-body .token.doctype,
+.article-body .token.cdata {
+  color: #8a8a8a;
+}
+
+.article-body .token.punctuation {
+  color: #666666;
+}
+
+.article-body .token.property,
+.article-body .token.tag,
+.article-body .token.constant,
+.article-body .token.symbol,
+.article-body .token.deleted {
+  color: #9b2c2c;
+}
+
+.article-body .token.boolean,
+.article-body .token.number {
+  color: #8b5e00;
+}
+
+.article-body .token.selector,
+.article-body .token.attr-name,
+.article-body .token.string,
+.article-body .token.char,
+.article-body .token.builtin,
+.article-body .token.inserted {
+  color: #166534;
+}
+
+.article-body .token.operator,
+.article-body .token.entity,
+.article-body .token.url,
+.article-body .language-css .token.string,
+.article-body .style .token.string {
+  color: #374151;
+}
+
+.article-body .token.atrule,
+.article-body .token.attr-value,
+.article-body .token.keyword {
+  color: #1d4ed8;
+}
+
+.article-body .token.function,
+.article-body .token.class-name {
+  color: #7c3aed;
+}
+
+.article-body .token.regex,
+.article-body .token.important,
+.article-body .token.variable {
+  color: #92400e;
+}
+
+.article-body blockquote {
+  margin-left: 0;
+  padding: 0.2rem 0 0.2rem var(--space-3);
+  border-left: 2px solid var(--line-strong);
+  color: var(--muted);
+}
+
+.article-body hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: var(--space-5) 0;
+}
+
+.article-page .article-body,
+.content-section .article-body {
+  max-width: 40rem;
+}
