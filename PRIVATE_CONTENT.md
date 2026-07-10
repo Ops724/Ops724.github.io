@@ -1,5 +1,35 @@
 # 本地私有内容工作流
 
+## 极简操作卡片
+
+以后日常只需要记住这一套：
+
+1. 写你的真实内容
+- 中文关于页：`source-local/about/index.md`
+- 英文关于页：`source-local/en/about/index.md`
+- 个人信息：`source-local/_data/profile.yml`
+- 头像图片：放进 `source-local/images/`
+- 文章：写进 `source-local/_posts/zh/` 或 `source-local/_posts/en/`
+
+2. 本地预览
+
+```bash
+npm run server:private
+```
+
+3. 满意后发布
+
+```bash
+npm run deploy:private
+```
+
+补充约定：
+
+- 不要把真实内容写进 `source/`
+- 真实内容都写进 `source-local/`
+- 不要手动编辑 `gh-pages`
+- `main` 只维护框架、主题、公开示例和项目文档
+
 这个项目现在采用“公开基座 + 本地私有内容层”的方式。
 
 目标是：
