@@ -61,3 +61,18 @@ hexo.extend.helper.register('localized_page_url', function localizedPageUrl(page
 
   return `/${path.replace(/^en\//, '')}`;
 });
+
+hexo.extend.helper.register('localized_taxonomy_url', function localizedTaxonomyUrl(taxonomyPath, targetLang) {
+  const lang = normalizeLang(targetLang);
+  const path = normalizePath(taxonomyPath || '');
+
+  if (!path) {
+    return fallbackPath(lang);
+  }
+
+  if (lang === 'en') {
+    return `/${path.startsWith('en/') ? path : `en/${path}`}`;
+  }
+
+  return `/${path.replace(/^en\//, '')}`;
+});

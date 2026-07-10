@@ -1,13 +1,35 @@
 'use strict';
 
-hexo.extend.helper.register('posts_by_lang', function postsByLang(lang) {
-  const normalized = lang === 'en' ? 'en' : 'zh-CN';
-  const posts = hexo.locals.get('posts').toArray();
+function normalizeLang(value) {
+  return value === 'en' ? 'en' : 'zh-CN';
+}
 
-  return posts.filter(post => {
-    const postLang = post.lang === 'en' ? 'en' : 'zh-CN';
-    return postLang === normalized;
-  }).sort((left, right) => right.date.valueOf() - left.date.valueOf());
+function toPostArray(collection) {
+  if (!collection) return [];
+  if (Array.isArray(collection)) return collection;
+  if (typeof collection.toArray === 'function') return collection.toArray();
+  return [];
+}
+
+function filterPostsByLang(collection, lang) {
+  const normalized = normalizeLang(lang);
+
+  return toPostArray(collection)
+    .filter(post => normalizeLang(post.lang) === normalized)
+    .sort((left, right) => right.date.valueOf() - left.date.valueOf());
+}
+
+hexo.extend.helper.register('posts_by_lang', function postsByLang(lang) {
+  return filterPostsByLang(hexo.locals.get('posts'), lang);
+});
+
+hexo.extend.helper.register('collection_by_lang', function collectionByLang(collection, lang) {
+  return filterPostsByLang(collection, lang);
+});
+
+hexo.extend.helper.register('taxonomy_count_by_lang', function taxonomyCountByLang(taxonomy, lang) {
+  const posts = taxonomy && taxonomy.posts ? taxonomy.posts : taxonomy;
+  return filterPostsByLang(posts, lang).length;
 });
 
 hexo.extend.helper.register('post_summary', function postSummary(post) {
@@ -30,10 +52,8 @@ hexo.extend.helper.register('post_neighbors', function postNeighbors(page) {
     return { prev: null, next: null };
   }
 
-  const lang = page.lang === 'en' ? 'en' : 'zh-CN';
-  const posts = hexo.locals.get('posts').toArray()
-    .filter(post => (post.lang === 'en' ? 'en' : 'zh-CN') === lang)
-    .sort((left, right) => right.date.valueOf() - left.date.valueOf());
+  const lang = normalizeLang(page.lang);
+  const posts = filterPostsByLang(hexo.locals.get('posts'), lang);
 
   const index = posts.findIndex(post => post.path === page.path);
 

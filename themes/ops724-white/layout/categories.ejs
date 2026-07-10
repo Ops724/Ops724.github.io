@@ -4,11 +4,15 @@
     <p><%= __('ui.categories_intro') %></p>
   </header>
   <div class="taxonomy-list">
+    <% const currentLang = page_lang(page); %>
     <% site.categories.sort('name').forEach(function(category) { %>
-      <a class="taxonomy-item" href="<%- url_for(category.path) %>">
-        <span><%= category.name %></span>
-        <span><%= category.length %></span>
-      </a>
+      <% const count = taxonomy_count_by_lang(category, currentLang); %>
+      <% if (count > 0) { %>
+        <a class="taxonomy-item" href="<%- localized_taxonomy_url(category.path, currentLang) %>">
+          <span><%= category.name %></span>
+          <span><%= count %></span>
+        </a>
+      <% } %>
     <% }) %>
   </div>
   <div class="article-body">
