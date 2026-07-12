@@ -48,6 +48,9 @@ prismjs:
   preprocess: true
   line_number: false
   tab_replace: ''
+marked:
+  prependRoot: true
+  postAsset: true
 
 # Home page setting
 index_generator:

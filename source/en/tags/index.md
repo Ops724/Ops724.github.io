@@ -5,5 +5,4 @@ lang: en
 permalink: /en/tags/
 ---
 
-Tags are a secondary discovery tool, not a replacement for clear categories.
-
+This page groups posts by tag for quick discovery and lightweight cross-linking.

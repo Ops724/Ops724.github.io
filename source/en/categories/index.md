@@ -5,5 +5,4 @@ lang: en
 permalink: /en/categories/
 ---
 
-Start with Life and Tech, then split further only when the content truly needs it.
-
+This page groups posts by category so the archive stays easy to browse by topic.
