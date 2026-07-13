@@ -57,7 +57,7 @@
 }
 
 .article-body img {
-  margin: var(--space-4) auto;
+  margin: var(--space-3) auto;
   border: 1px solid var(--line);
   background: #ffffff;
   padding: 0;

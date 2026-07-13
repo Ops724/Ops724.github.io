@@ -149,7 +149,7 @@ npm run server:private
 npm run deploy:private
 ```
 
-更完整的发布说明见 [DEPLOY.md](/Users/chen/code/ops724blog/DEPLOY.md)。
+更完整的发布说明见 [DEPLOY.md](./DEPLOY.md)。
 
 ## 示例内容说明
 

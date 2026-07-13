@@ -90,6 +90,6 @@ npm run deploy:private
 
 ## 文档入口
 
-- [DEPLOY.md](/Users/chen/code/ops724blog/DEPLOY.md)：发布流程说明
-- [PRIVATE_CONTENT.md](/Users/chen/code/ops724blog/PRIVATE_CONTENT.md)：本地私有内容工作流
-- [PLAN.md](/Users/chen/code/ops724blog/PLAN.md)：项目实现蓝图
+- [DEPLOY.md](./DEPLOY.md)：发布流程说明
+- [PRIVATE_CONTENT.md](./PRIVATE_CONTENT.md)：本地私有内容工作流
+- [PLAN.md](./PLAN.md)：项目实现蓝图

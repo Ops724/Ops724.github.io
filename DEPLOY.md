@@ -32,9 +32,9 @@ npm run deploy
 
 相关文件：
 
-- [package.json](/Users/chen/code/ops724blog/package.json)
-- [_config.yml](/Users/chen/code/ops724blog/_config.yml)
-- [PRIVATE_CONTENT.md](/Users/chen/code/ops724blog/PRIVATE_CONTENT.md)
+- [package.json](./package.json)
+- [_config.yml](./_config.yml)
+- [PRIVATE_CONTENT.md](./PRIVATE_CONTENT.md)
 
 当前站点按 GitHub 用户主页仓库模式配置：
 
