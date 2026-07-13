@@ -26,6 +26,60 @@ function normalizePath(pathname) {
   return stripIndex(pathname).replace(/^\/+/, '');
 }
 
+function routeExists(pathname) {
+  const normalizedPath = normalizePath(pathname);
+
+  if (!normalizedPath) {
+    return Boolean(hexo.route.get('index.html'));
+  }
+
+  return Boolean(
+    hexo.route.get(normalizedPath) ||
+    hexo.route.get(`${normalizedPath}/index.html`) ||
+    hexo.route.get(`${normalizedPath}.html`)
+  );
+}
+
+function localizedPath(pathname, lang) {
+  const path = normalizePath(pathname);
+
+  if (!path) return '';
+
+  if (lang === 'en') {
+    return path.startsWith('en/') ? path : `en/${path}`;
+  }
+
+  return path.replace(/^en\//, '');
+}
+
+function stripPagination(pathname) {
+  const path = normalizePath(pathname);
+  const paginationDir = hexo.config.pagination_dir || 'page';
+  const pattern = new RegExp(`/${paginationDir}/\\d+/?$`);
+
+  return path.replace(pattern, '');
+}
+
+function finalizeUrl(pathname, lang) {
+  const directPath = localizedPath(pathname, lang);
+
+  if (!directPath) {
+    return fallbackPath(lang);
+  }
+
+  if (routeExists(directPath)) {
+    return `/${directPath}`;
+  }
+
+  const basePath = stripPagination(directPath);
+
+  if (basePath && routeExists(basePath)) {
+    return `/${basePath}`;
+  }
+
+  return fallbackPath(lang);
+}
+
 hexo.extend.helper.register('page_lang', function pageLang(page) {
   return getPageLang(page);
 });
@@ -55,11 +109,7 @@ hexo.extend.helper.register('localized_page_url', function localizedPageUrl(page
     return `/${path}`;
   }
 
-  if (lang === 'en') {
-    return `/${path.startsWith('en/') ? path : `en/${path}`}`;
-  }
-
-  return `/${path.replace(/^en\//, '')}`;
+  return finalizeUrl(path, lang);
 });
 
 hexo.extend.helper.register('localized_taxonomy_url', function localizedTaxonomyUrl(taxonomyPath, targetLang) {
