@@ -4,6 +4,10 @@ function normalizeLang(value) {
   return value === 'en' ? 'en' : 'zh-CN';
 }
 
+function normalizeSection(value) {
+  return value === 'life' ? 'life' : 'tech';
+}
+
 function toPostArray(collection) {
   if (!collection) return [];
   if (Array.isArray(collection)) return collection;
@@ -11,25 +15,31 @@ function toPostArray(collection) {
   return [];
 }
 
-function filterPostsByLang(collection, lang) {
+function filterPosts(collection, lang, section) {
   const normalized = normalizeLang(lang);
+  const normalizedSection = section ? normalizeSection(section) : null;
 
   return toPostArray(collection)
     .filter(post => normalizeLang(post.lang) === normalized)
+    .filter(post => !normalizedSection || normalizeSection(post.section) === normalizedSection)
     .sort((left, right) => right.date.valueOf() - left.date.valueOf());
 }
 
-hexo.extend.helper.register('posts_by_lang', function postsByLang(lang) {
-  return filterPostsByLang(hexo.locals.get('posts'), lang);
+hexo.extend.helper.register('posts_by_lang', function postsByLang(lang, section) {
+  return filterPosts(hexo.locals.get('posts'), lang, section);
 });
 
-hexo.extend.helper.register('collection_by_lang', function collectionByLang(collection, lang) {
-  return filterPostsByLang(collection, lang);
+hexo.extend.helper.register('collection_by_lang', function collectionByLang(collection, lang, section) {
+  return filterPosts(collection, lang, section);
 });
 
 hexo.extend.helper.register('taxonomy_count_by_lang', function taxonomyCountByLang(taxonomy, lang) {
   const posts = taxonomy && taxonomy.posts ? taxonomy.posts : taxonomy;
-  return filterPostsByLang(posts, lang).length;
+  return filterPosts(posts, lang).length;
+});
+
+hexo.extend.helper.register('section_name', function sectionName(section) {
+  return normalizeSection(section);
 });
 
 hexo.extend.helper.register('post_summary', function postSummary(post) {
@@ -53,7 +63,8 @@ hexo.extend.helper.register('post_neighbors', function postNeighbors(page) {
   }
 
   const lang = normalizeLang(page.lang);
-  const posts = filterPostsByLang(hexo.locals.get('posts'), lang);
+  const section = normalizeSection(page.section);
+  const posts = filterPosts(hexo.locals.get('posts'), lang, section);
 
   const index = posts.findIndex(post => post.path === page.path);
 

@@ -32,6 +32,7 @@ function copyBaseSource() {
     'categories',
     'en',
     'images',
+    'life',
     'tags'
   ];
 

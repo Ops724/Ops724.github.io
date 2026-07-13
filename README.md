@@ -13,7 +13,7 @@
 
 - 极简白底主题
 - 中英双语结构
-- 首页、关于、分类、标签页
+- 技术、生活、关于、分类、标签导航
 - 适合生活分享与技术文章
 - 支持代码高亮
 - 文章图片默认居中并占满正文宽度
@@ -53,6 +53,18 @@ cp -R source-local.example source-local
 
 ```bash
 npm run server:private
+```
+
+写文章时建议在 front-matter 中显式指定一级频道：
+
+```yml
+section: tech
+```
+
+或：
+
+```yml
+section: life
 ```
 
 发布你的真实站点内容：

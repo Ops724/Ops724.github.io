@@ -1,6 +1,6 @@
 <section class="content-section content-section-home">
   <div class="section-heading">
-    <h2><%= __('ui.latest_posts') %></h2>
+    <h2><%= __('ui.latest_tech_posts') %></h2>
   </div>
-  <%- partial('partials/post-list', { localizedPosts: posts_by_lang(page_lang(page)) }) %>
+  <%- partial('partials/post-list', { localizedPosts: posts_by_lang(page_lang(page), 'tech') }) %>
 </section>

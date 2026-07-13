@@ -10,6 +10,7 @@
 - 个人信息：`source-local/_data/profile.yml`
 - 头像图片：放进 `source-local/images/`
 - 文章：写进 `source-local/_posts/zh/` 或 `source-local/_posts/en/`
+- 文章 front-matter 建议补上：`section: tech` 或 `section: life`
 
 2. 本地预览
 

@@ -98,6 +98,15 @@
   color: var(--muted);
 }
 
+.section-copy {
+  max-width: 36rem;
+  color: var(--muted);
+}
+
+.section-copy p:last-child {
+  margin-bottom: 0;
+}
+
 @media (max-width: 720px) {
   .site-header-inner {
     flex-direction: column;

@@ -4,6 +4,7 @@ date: 2026-07-09 12:00:00
 lang: en
 permalink: /en/posts/your-first-post/
 translation_key: your-first-post
+section: tech
 categories:
   - Notes
 tags:

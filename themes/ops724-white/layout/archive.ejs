@@ -1,8 +1,14 @@
 <section class="content-section">
   <header class="section-heading">
     <h1><%= page.title || config.title %></h1>
+    <% if (page.content) { %>
+      <div class="section-copy">
+        <%- page.content %>
+      </div>
+    <% } %>
   </header>
   <% const currentLang = page_lang(page); %>
-  <% const localizedPosts = page.posts ? collection_by_lang(page.posts, currentLang) : posts_by_lang(currentLang); %>
+  <% const currentSection = page.section ? section_name(page.section) : null; %>
+  <% const localizedPosts = page.posts ? collection_by_lang(page.posts, currentLang, currentSection) : posts_by_lang(currentLang, currentSection); %>
   <%- partial('partials/post-list', { localizedPosts }) %>
 </section>

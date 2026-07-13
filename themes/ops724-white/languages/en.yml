@@ -1,10 +1,12 @@
-nav.home: Home
+nav.tech: Tech
+nav.life: Life
 nav.about: About
 nav.categories: Categories
 nav.tags: Tags
 ui.read_more: Read more
 ui.no_posts: No posts yet.
 ui.latest_posts: Latest Posts
+ui.latest_tech_posts: Tech Notes
 ui.language_zh: 中
 ui.language_en: EN
 ui.categories_intro: Start with life and tech, then keep the structure lean.

@@ -4,6 +4,7 @@ date: 2026-07-09 10:16:00
 lang: en
 permalink: /en/posts/getting-started/
 translation_key: getting-started
+section: tech
 categories:
   - Tech
 tags:

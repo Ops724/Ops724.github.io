@@ -4,6 +4,7 @@ date: 2026-07-09 10:15:00
 lang: zh-CN
 permalink: /posts/getting-started/
 translation_key: getting-started
+section: tech
 categories:
   - Tech
 tags:

@@ -1,8 +1,12 @@
 items:
-  - label_key: nav.home
+  - label_key: nav.tech
     paths:
       zh-CN: /
       en: /en/
+  - label_key: nav.life
+    paths:
+      zh-CN: /life/
+      en: /en/life/
   - label_key: nav.about
     paths:
       zh-CN: /about/
@@ -15,4 +19,3 @@ items:
     paths:
       zh-CN: /tags/
       en: /en/tags/
-
