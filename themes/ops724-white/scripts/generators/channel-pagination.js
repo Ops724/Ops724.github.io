@@ -59,9 +59,9 @@ hexo.extend.generator.register('index', function channelPaginationIndex(locals) 
   const config = this.config;
 
   return [
-    ...createChannelPagination(locals, config, 'zh-CN', 'tech', ['index', 'archive']),
-    ...createChannelPagination(locals, config, 'en', 'tech', ['index', 'archive']),
-    ...createChannelPagination(locals, config, 'zh-CN', 'life', ['section', 'archive']),
-    ...createChannelPagination(locals, config, 'en', 'life', ['section', 'archive'])
+    ...createChannelPagination(locals, config, 'zh-CN', 'tech', ['index', 'list']),
+    ...createChannelPagination(locals, config, 'en', 'tech', ['index', 'list']),
+    ...createChannelPagination(locals, config, 'zh-CN', 'life', ['section', 'list']),
+    ...createChannelPagination(locals, config, 'en', 'life', ['section', 'list'])
   ];
 });

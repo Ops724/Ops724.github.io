@@ -102,6 +102,7 @@ npm run deploy:private
 
 ## 文档入口
 
+- [ARCHITECTURE.md](./ARCHITECTURE.md)：当前项目结构与实现关系说明
 - [DEPLOY.md](./DEPLOY.md)：发布流程说明
 - [PRIVATE_CONTENT.md](./PRIVATE_CONTENT.md)：本地私有内容工作流
 - [PLAN.md](./PLAN.md)：项目实现蓝图

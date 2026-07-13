@@ -34,6 +34,13 @@ npm run deploy:private
 - 不要手动编辑 `gh-pages`
 - `main` 只维护框架、主题、公开示例和项目文档
 
+如果执行 `npm run build:private`、`npm run server:private`、`npm run deploy:private` 时看到脚本自检报错，先优先确认这两项：
+
+```bash
+cp _config.private-template.yml _config.local.yml
+cp -R source-local.example source-local
+```
+
 这个项目现在采用“公开基座 + 本地私有内容层”的方式。
 
 目标是：

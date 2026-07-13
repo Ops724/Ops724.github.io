@@ -11,7 +11,7 @@ function createLocalizedTaxonomyRoutes(collection, layoutName, dataKey, lang, co
 
   return createRoutesFromCollection(collection, item => {
     const basePath = pathResolver(item, lang);
-    const layout = [layoutName, 'archive', 'index'];
+    const layout = [layoutName, 'list', 'index'];
     const data = {
       title: item.name,
       lang,

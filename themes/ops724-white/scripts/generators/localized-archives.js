@@ -26,7 +26,7 @@ hexo.extend.generator.register('archive', function localizedArchives(locals) {
 
   return createRoutesFromCollection(['zh-CN', 'en'], lang => ({
     path: `${buildArchivePath(config, lang)}/`,
-    layout: ['archives', 'page', 'archive', 'index'],
+    layout: ['archives', 'page', 'list', 'index'],
     data: {
       title: buildArchiveTitle(lang),
       content: buildArchiveIntro(lang),
