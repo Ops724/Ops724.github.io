@@ -15,3 +15,5 @@ ui.back_home: 返回首页
 ui.translation: 切换语言
 ui.previous: 上一篇
 ui.next: 下一篇
+ui.prev_page: 上一页
+ui.next_page: 下一页

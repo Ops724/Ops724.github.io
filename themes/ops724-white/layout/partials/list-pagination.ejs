@@ -1,0 +1,18 @@
+<% if (page && page.total && page.total > 1) { %>
+  <% const prevHref = page.prev ? (page.prev === 1 ? (page.base || '/') : page.prev_link) : ''; %>
+  <nav class="list-pagination" aria-label="Pagination">
+    <% if (page.prev) { %>
+      <a class="list-pagination-link" rel="prev" href="<%- url_for(prevHref) %>"><%= __('ui.prev_page') %></a>
+    <% } else { %>
+      <span class="list-pagination-link is-disabled"><%= __('ui.prev_page') %></span>
+    <% } %>
+
+    <span class="list-pagination-status"><%= page.current %> / <%= page.total %></span>
+
+    <% if (page.next_link) { %>
+      <a class="list-pagination-link" rel="next" href="<%- url_for(page.next_link) %>"><%= __('ui.next_page') %></a>
+    <% } else { %>
+      <span class="list-pagination-link is-disabled"><%= __('ui.next_page') %></span>
+    <% } %>
+  </nav>
+<% } %>

@@ -15,3 +15,5 @@ ui.back_home: Back Home
 ui.translation: Language
 ui.previous: Previous
 ui.next: Next
+ui.prev_page: Prev Page
+ui.next_page: Next Page

@@ -11,4 +11,5 @@
   <% const currentSection = page.section ? section_name(page.section) : null; %>
   <% const localizedPosts = page.posts ? collection_by_lang(page.posts, currentLang, currentSection) : posts_by_lang(currentLang, currentSection); %>
   <%- partial('partials/post-list', { localizedPosts }) %>
+  <%- partial('partials/list-pagination') %>
 </section>

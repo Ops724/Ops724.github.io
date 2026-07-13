@@ -1,6 +1,9 @@
 <section class="content-section content-section-home">
+  <% const currentLang = page_lang(page); %>
+  <% const localizedPosts = page.posts ? collection_by_lang(page.posts, currentLang, 'tech') : posts_by_lang(currentLang, 'tech'); %>
   <div class="section-heading">
     <h2><%= __('ui.latest_tech_posts') %></h2>
   </div>
-  <%- partial('partials/post-list', { localizedPosts: posts_by_lang(page_lang(page), 'tech') }) %>
+  <%- partial('partials/post-list', { localizedPosts }) %>
+  <%- partial('partials/list-pagination') %>
 </section>
