@@ -31,6 +31,7 @@ function copyBaseSource() {
     'about',
     'categories',
     'en',
+    'favicon.ico',
     'images',
     'life',
     'tags'

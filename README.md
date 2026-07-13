@@ -105,3 +105,10 @@ npm run deploy:private
 - [DEPLOY.md](./DEPLOY.md)：发布流程说明
 - [PRIVATE_CONTENT.md](./PRIVATE_CONTENT.md)：本地私有内容工作流
 - [PLAN.md](./PLAN.md)：项目实现蓝图
+
+## Favicon 约定
+
+- 公开示例 favicon：`source/favicon.ico`
+- 私有站点 favicon：`source-local/favicon.ico`
+
+如果 `source-local/favicon.ico` 存在，私有预览和私有发布会自动优先使用它。

@@ -1,12 +1,14 @@
 <head>
+  <% const faviconVersion = site.time ? site.time.valueOf() : Date.now(); %>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><% if (page.title) { %><%= page.title %> | <% } %><%= config.title %></title>
   <meta name="description" content="<%= config.description %>">
+  <link rel="icon" href="<%- url_for('/favicon.ico') %>?v=<%= faviconVersion %>" type="image/x-icon">
+  <link rel="shortcut icon" href="<%- url_for('/favicon.ico') %>?v=<%= faviconVersion %>" type="image/x-icon">
   <link rel="stylesheet" href="<%- url_for('/css/tokens.css') %>">
   <link rel="stylesheet" href="<%- url_for('/css/base.css') %>">
   <link rel="stylesheet" href="<%- url_for('/css/layout.css') %>">
   <link rel="stylesheet" href="<%- url_for('/css/components.css') %>">
   <link rel="stylesheet" href="<%- url_for('/css/content.css') %>">
 </head>
-

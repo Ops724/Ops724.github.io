@@ -9,6 +9,7 @@
 - 英文关于页：`source-local/en/about/index.md`
 - 个人信息：`source-local/_data/profile.yml`
 - 头像图片：放进 `source-local/images/`
+- 站点图标：放进 `source-local/favicon.ico`
 - 文章：写进 `source-local/_posts/zh/` 或 `source-local/_posts/en/`
 - 文章 front-matter 建议补上：`section: tech` 或 `section: life`
 
