@@ -1,6 +1,10 @@
 <% const currentLang = page_lang(page); %>
+<% const headerBackgroundColor = site.data.profile.header_background_color; %>
 <header class="site-header">
-  <div class="site-header-inner">
+  <div
+    class="site-header-inner<%= headerBackgroundColor ? ' site-header-inner-has-fill' : '' %>"
+    <% if (headerBackgroundColor) { %>style="background-color: <%= headerBackgroundColor %>;"<% } %>
+  >
     <div class="site-header-profile">
       <a class="site-avatar-link" href="<%- url_for(currentLang === 'en' ? '/en/' : '/') %>">
         <% if (site.data.profile.avatar) { %>

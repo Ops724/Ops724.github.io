@@ -112,3 +112,33 @@ npm run deploy:private
 - 私有站点 favicon：`source-local/favicon.ico`
 
 如果 `source-local/favicon.ico` 存在，私有预览和私有发布会自动优先使用它。
+
+## Header 背景色约定
+
+在 `profile.yml` 中可选设置：
+
+```yml
+header_background_color: "#f6f6f4"
+```
+
+适用位置：
+
+- 公开示例：`source/_data/profile.yml`
+- 私有站点：`source-local/_data/profile.yml`
+
+如果字段留空，header 会保持现在的纯白样式。
+
+## Body 背景色约定
+
+在 `profile.yml` 中可选设置：
+
+```yml
+body_background_color: "#fbfbf8"
+```
+
+适用位置：
+
+- 公开示例：`source/_data/profile.yml`
+- 私有站点：`source-local/_data/profile.yml`
+
+如果字段留空，页面主体会保持主题默认背景色。

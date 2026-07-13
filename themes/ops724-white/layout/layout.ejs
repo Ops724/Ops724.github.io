@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="<%= page_lang(page) %>">
   <%- partial('partials/head') %>
-  <body>
+  <% const bodyBackgroundColor = site.data.profile.body_background_color; %>
+  <body<% if (bodyBackgroundColor) { %> style="--page-background-color: <%= bodyBackgroundColor %>;"<% } %>>
     <div class="site-shell">
       <%- partial('partials/header') %>
       <main class="site-main">

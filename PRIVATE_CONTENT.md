@@ -10,6 +10,8 @@
 - 个人信息：`source-local/_data/profile.yml`
 - 头像图片：放进 `source-local/images/`
 - 站点图标：放进 `source-local/favicon.ico`
+- Header 背景色：在 `source-local/_data/profile.yml` 里设置 `header_background_color`
+- Body 背景色：在 `source-local/_data/profile.yml` 里设置 `body_background_color`
 - 文章：写进 `source-local/_posts/zh/` 或 `source-local/_posts/en/`
 - 文章 front-matter 建议补上：`section: tech` 或 `section: life`
 

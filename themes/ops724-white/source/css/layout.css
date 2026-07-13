@@ -18,6 +18,11 @@
   border-bottom: 1px solid var(--line);
 }
 
+.site-header-inner-has-fill {
+  padding: var(--space-3);
+  padding-bottom: calc(var(--space-3) + 1px);
+}
+
 .site-header-profile {
   display: flex;
   align-items: flex-start;
@@ -132,4 +137,5 @@
   .site-shell {
     padding-bottom: var(--space-6);
   }
+
 }

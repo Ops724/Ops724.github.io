@@ -5,6 +5,8 @@ tagline:
   zh-CN: 在这里写下你的中文简介，比如你关心的主题、写作方向，或你想长期记录的内容。
   en: Write a short English tagline here about your writing focus, interests, or what this blog is for.
 avatar: /images/avatar-square.svg
+header_background_color: ''
+body_background_color: ''
 email: ''
 location:
   zh-CN: 你的城市 / 地区
