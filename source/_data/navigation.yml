@@ -11,6 +11,10 @@ items:
     paths:
       zh-CN: /about/
       en: /en/about/
+  - label_key: nav.archives
+    paths:
+      zh-CN: /archives/
+      en: /en/archives/
   - label_key: nav.categories
     paths:
       zh-CN: /categories/
