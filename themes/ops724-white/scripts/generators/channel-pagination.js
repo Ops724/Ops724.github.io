@@ -1,41 +1,7 @@
 'use strict';
 
-const pagination = require('hexo-pagination');
-
-function normalizeLang(value) {
-  return value === 'en' ? 'en' : 'zh-CN';
-}
-
-function normalizeSection(value) {
-  return value === 'life' ? 'life' : 'tech';
-}
-
-function toPostArray(collection) {
-  if (!collection) return [];
-  if (Array.isArray(collection)) return collection;
-  if (typeof collection.toArray === 'function') return collection.toArray();
-  return [];
-}
-
-function sortPosts(posts) {
-  return posts.sort((left, right) => {
-    const stickyDiff = (right.sticky || 0) - (left.sticky || 0);
-    if (stickyDiff) return stickyDiff;
-
-    return right.date.valueOf() - left.date.valueOf();
-  });
-}
-
-function filterPosts(collection, lang, section) {
-  const normalizedLang = normalizeLang(lang);
-  const normalizedSection = normalizeSection(section);
-
-  return sortPosts(
-    toPostArray(collection)
-      .filter(post => normalizeLang(post.lang) === normalizedLang)
-      .filter(post => normalizeSection(post.section) === normalizedSection)
-  );
-}
+const { filterPosts, normalizeLang, normalizeSection } = require('../lib/content');
+const { createPaginatedRoutes } = require('../lib/generator');
 
 function buildIntro(lang, section) {
   if (section !== 'life') return '';
@@ -67,7 +33,6 @@ function buildBasePath(config, lang, section) {
 }
 
 function createChannelPagination(locals, config, lang, section, layout) {
-  const posts = filterPosts(locals.posts, lang, section);
   const paginationDir = config.index_generator.pagination_dir || config.pagination_dir || 'page';
   const perPage = config.index_generator.per_page;
   const basePath = buildBasePath(config, lang, section);
@@ -79,31 +44,13 @@ function createChannelPagination(locals, config, lang, section, layout) {
     content: buildIntro(lang, section)
   };
 
-  if (!posts.length) {
-    const base = basePath ? `${basePath}/` : '';
-
-    return [{
-      path: base,
-      layout,
-      data: {
-        base,
-        total: 1,
-        current: 1,
-        current_url: base,
-        posts: [],
-        prev: 0,
-        prev_link: '',
-        next: 0,
-        next_link: '',
-        ...sharedData
-      }
-    }];
-  }
-
-  return pagination(basePath, posts, {
-    perPage,
+  return createPaginatedRoutes({
+    collection: locals.posts,
+    filterPosts: posts => filterPosts(posts, lang, section),
+    basePath,
     layout,
-    format: `${paginationDir}/%d/`,
+    perPage,
+    paginationDir,
     data: sharedData
   });
 }

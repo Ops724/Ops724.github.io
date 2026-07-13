@@ -1,11 +1,6 @@
 'use strict';
 
-function toArray(collection) {
-  if (!collection) return [];
-  if (Array.isArray(collection)) return collection;
-  if (typeof collection.toArray === 'function') return collection.toArray();
-  return [];
-}
+const { toArray } = require('../lib/content');
 
 hexo.extend.helper.register('archive_groups', function archiveGroups(collection) {
   const posts = toArray(collection);

@@ -1,23 +1,7 @@
 'use strict';
 
-function normalizeLang(value) {
-  return value === 'en' ? 'en' : 'zh-CN';
-}
-
-function toArray(collection) {
-  if (!collection) return [];
-  if (Array.isArray(collection)) return collection;
-  if (typeof collection.toArray === 'function') return collection.toArray();
-  return [];
-}
-
-function filterPostsByLang(collection, lang) {
-  const normalizedLang = normalizeLang(lang);
-
-  return toArray(collection)
-    .filter(post => normalizeLang(post.lang) === normalizedLang)
-    .sort((left, right) => right.date.valueOf() - left.date.valueOf());
-}
+const { filterPosts } = require('../lib/content');
+const { createRoutesFromCollection } = require('../lib/generator');
 
 function buildArchivePath(config, lang) {
   const archiveDir = String(config.archive_dir || 'archives').replace(/^\/+|\/+$/g, '');
@@ -40,14 +24,14 @@ function buildArchiveIntro(lang) {
 hexo.extend.generator.register('archive', function localizedArchives(locals) {
   const config = this.config;
 
-  return ['zh-CN', 'en'].map(lang => ({
+  return createRoutesFromCollection(['zh-CN', 'en'], lang => ({
     path: `${buildArchivePath(config, lang)}/`,
     layout: ['archives', 'page', 'archive', 'index'],
     data: {
       title: buildArchiveTitle(lang),
       content: buildArchiveIntro(lang),
       lang,
-      posts: filterPostsByLang(locals.posts, lang)
+      posts: filterPosts(locals.posts, lang)
     }
   }));
 });

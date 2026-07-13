@@ -1,58 +1,15 @@
 'use strict';
 
-const pagination = require('hexo-pagination');
+const { filterPosts } = require('../lib/content');
+const { createPaginatedRoutes, createRoutesFromCollection } = require('../lib/generator');
+const { normalizeTaxonomyPath } = require('../lib/path');
 
-function normalizeLang(value) {
-  return value === 'en' ? 'en' : 'zh-CN';
-}
-
-function toArray(collection) {
-  if (!collection) return [];
-  if (Array.isArray(collection)) return collection;
-  if (typeof collection.toArray === 'function') return collection.toArray();
-  return [];
-}
-
-function normalizeTaxonomyPath(pathname) {
-  return String(pathname || '').replace(/^\/+|\/+$/g, '');
-}
-
-function filterPostsByLang(collection, lang) {
-  const normalizedLang = normalizeLang(lang);
-
-  return toArray(collection)
-    .filter(post => normalizeLang(post.lang) === normalizedLang)
-    .sort((left, right) => right.date.valueOf() - left.date.valueOf());
-}
-
-function createEmptyPage(basePath, layout, data) {
-  const base = basePath ? `${basePath}/` : '';
-
-  return [{
-    path: base,
-    layout,
-    data: {
-      base,
-      total: 1,
-      current: 1,
-      current_url: base,
-      posts: [],
-      prev: 0,
-      prev_link: '',
-      next: 0,
-      next_link: '',
-      ...data
-    }
-  }];
-}
-
-function createPaginatedRoutes(collection, layoutName, dataKey, lang, config, pathResolver) {
+function createLocalizedTaxonomyRoutes(collection, layoutName, dataKey, lang, config, pathResolver) {
   const generatorConfig = config[`${dataKey}_generator`] || {};
   const perPage = generatorConfig.per_page || config.per_page || 10;
   const paginationDir = config.pagination_dir || 'page';
 
-  return toArray(collection).flatMap(item => {
-    const posts = filterPostsByLang(item.posts, lang);
+  return createRoutesFromCollection(collection, item => {
     const basePath = pathResolver(item, lang);
     const layout = [layoutName, 'archive', 'index'];
     const data = {
@@ -61,14 +18,13 @@ function createPaginatedRoutes(collection, layoutName, dataKey, lang, config, pa
       [dataKey]: item
     };
 
-    if (!posts.length) {
-      return createEmptyPage(basePath, layout, data);
-    }
-
-    return pagination(basePath, posts, {
-      perPage,
+    return createPaginatedRoutes({
+      collection: item.posts,
+      filterPosts: posts => filterPosts(posts, lang),
+      basePath,
       layout,
-      format: `${paginationDir}/%d/`,
+      perPage,
+      paginationDir,
       data
     });
   });
@@ -88,8 +44,8 @@ hexo.extend.generator.register('category', function localizedCategories(locals) 
   const config = this.config;
 
   return [
-    ...createPaginatedRoutes(locals.categories, 'category', 'category', 'zh-CN', config, categoryPathResolver),
-    ...createPaginatedRoutes(locals.categories, 'category', 'category', 'en', config, categoryPathResolver)
+    ...createLocalizedTaxonomyRoutes(locals.categories, 'category', 'category', 'zh-CN', config, categoryPathResolver),
+    ...createLocalizedTaxonomyRoutes(locals.categories, 'category', 'category', 'en', config, categoryPathResolver)
   ];
 });
 
@@ -97,7 +53,7 @@ hexo.extend.generator.register('tag', function localizedTags(locals) {
   const config = this.config;
 
   return [
-    ...createPaginatedRoutes(locals.tags, 'tag', 'tag', 'zh-CN', config, tagPathResolver),
-    ...createPaginatedRoutes(locals.tags, 'tag', 'tag', 'en', config, tagPathResolver)
+    ...createLocalizedTaxonomyRoutes(locals.tags, 'tag', 'tag', 'zh-CN', config, tagPathResolver),
+    ...createLocalizedTaxonomyRoutes(locals.tags, 'tag', 'tag', 'en', config, tagPathResolver)
   ];
 });

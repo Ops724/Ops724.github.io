@@ -1,30 +1,12 @@
 'use strict';
-
-function normalizeLang(value) {
-  return value === 'en' ? 'en' : 'zh-CN';
-}
-
-function getPageLang(page) {
-  const lang = page && page.lang ? page.lang : '';
-  if (lang === 'en') return 'en';
-
-  const path = page && page.path ? page.path : '';
-  if (path.startsWith('en/')) return 'en';
-
-  return 'zh-CN';
-}
-
-function fallbackPath(lang) {
-  return lang === 'en' ? '/en/' : '/';
-}
-
-function stripIndex(pathname) {
-  return pathname.replace(/index\.html$/, '');
-}
-
-function normalizePath(pathname) {
-  return stripIndex(pathname).replace(/^\/+/, '');
-}
+const { normalizeLang } = require('../lib/content');
+const {
+  fallbackPath,
+  getPageLang,
+  localizedPath,
+  normalizePath,
+  stripPagination
+} = require('../lib/path');
 
 function routeExists(pathname) {
   const normalizedPath = normalizePath(pathname);
@@ -40,26 +22,6 @@ function routeExists(pathname) {
   );
 }
 
-function localizedPath(pathname, lang) {
-  const path = normalizePath(pathname);
-
-  if (!path) return '';
-
-  if (lang === 'en') {
-    return path.startsWith('en/') ? path : `en/${path}`;
-  }
-
-  return path.replace(/^en\//, '');
-}
-
-function stripPagination(pathname) {
-  const path = normalizePath(pathname);
-  const paginationDir = hexo.config.pagination_dir || 'page';
-  const pattern = new RegExp(`/${paginationDir}/\\d+/?$`);
-
-  return path.replace(pattern, '');
-}
-
 function finalizeUrl(pathname, lang) {
   const directPath = localizedPath(pathname, lang);
 
@@ -71,7 +33,7 @@ function finalizeUrl(pathname, lang) {
     return `/${directPath}`;
   }
 
-  const basePath = stripPagination(directPath);
+  const basePath = stripPagination(directPath, hexo.config.pagination_dir);
 
   if (basePath && routeExists(basePath)) {
     return `/${basePath}`;
@@ -114,15 +76,7 @@ hexo.extend.helper.register('localized_page_url', function localizedPageUrl(page
 
 hexo.extend.helper.register('localized_taxonomy_url', function localizedTaxonomyUrl(taxonomyPath, targetLang) {
   const lang = normalizeLang(targetLang);
-  const path = normalizePath(taxonomyPath || '');
+  const path = localizedPath(taxonomyPath || '', lang);
 
-  if (!path) {
-    return fallbackPath(lang);
-  }
-
-  if (lang === 'en') {
-    return `/${path.startsWith('en/') ? path : `en/${path}`}`;
-  }
-
-  return `/${path.replace(/^en\//, '')}`;
+  return path ? `/${path}` : fallbackPath(lang);
 });
