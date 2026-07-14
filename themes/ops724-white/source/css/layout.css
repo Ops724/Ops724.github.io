@@ -59,6 +59,20 @@
   flex-wrap: wrap;
 }
 
+.site-nav a {
+  position: relative;
+  padding-bottom: 0.2rem;
+  color: var(--muted);
+  border-bottom: 1px solid transparent;
+}
+
+.site-nav a:hover,
+.site-nav a:focus-visible,
+.site-nav a.is-active {
+  color: var(--text);
+  border-bottom-color: var(--line-strong);
+}
+
 .site-header-actions {
   display: flex;
   align-items: flex-start;

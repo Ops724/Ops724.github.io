@@ -27,7 +27,12 @@
     <div class="site-header-actions">
       <nav class="site-nav" aria-label="Main">
         <% site.data.navigation.items.forEach(function(item) { %>
-          <a href="<%- url_for(item.paths[currentLang]) %>"><%= __(item.label_key) %></a>
+          <% const itemPath = item.paths[currentLang]; %>
+          <a
+            href="<%- url_for(itemPath) %>"
+            class="<%= is_nav_active(page, itemPath) ? 'is-active' : '' %>"
+            <%= is_nav_active(page, itemPath) ? 'aria-current="page"' : '' %>
+          ><%= __(item.label_key) %></a>
         <% }) %>
       </nav>
       <% if (theme.menu.show_language_switcher) { %>

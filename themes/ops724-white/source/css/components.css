@@ -78,6 +78,11 @@
   color: var(--text);
 }
 
+.language-switcher a:hover,
+.language-switcher a:focus-visible {
+  color: var(--text);
+}
+
 .post-list {
   display: grid;
   gap: var(--space-4);
@@ -100,6 +105,15 @@
   font-size: clamp(1.35rem, 2.2vw, 1.8rem);
   letter-spacing: -0.02em;
   margin-bottom: 0.6rem;
+}
+
+.post-list-item h3 a {
+  border-bottom: 1px solid transparent;
+}
+
+.post-list-item h3 a:hover,
+.post-list-item h3 a:focus-visible {
+  border-bottom-color: var(--line-strong);
 }
 
 .post-date,
@@ -139,6 +153,10 @@
   border-color: var(--text);
 }
 
+.post-list-readmore a:focus-visible {
+  border-color: var(--text);
+}
+
 .taxonomy-list {
   display: grid;
   gap: var(--space-2);
@@ -151,6 +169,15 @@
   align-items: center;
   padding: 1.15rem 0;
   border-bottom: 1px solid var(--line);
+}
+
+.taxonomy-item:hover,
+.taxonomy-item:focus-visible {
+  color: var(--text);
+}
+
+.taxonomy-item span:last-child {
+  color: var(--muted);
 }
 
 .archive-groups {
@@ -203,6 +230,15 @@
   font-size: clamp(1.05rem, 1.8vw, 1.25rem);
 }
 
+.archive-item-body h3 a {
+  border-bottom: 1px solid transparent;
+}
+
+.archive-item-body h3 a:hover,
+.archive-item-body h3 a:focus-visible {
+  border-bottom-color: var(--line-strong);
+}
+
 .pagination {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -215,6 +251,11 @@
   padding: 1rem 1.2rem;
   border: 1px solid var(--line);
   background: #ffffff;
+}
+
+.pagination a:hover,
+.pagination a:focus-visible {
+  border-color: var(--line-strong);
 }
 
 .pagination span {
@@ -251,6 +292,11 @@
 }
 
 .list-pagination-link {
+  color: var(--text);
+}
+
+.list-pagination-link:hover,
+.list-pagination-link:focus-visible {
   color: var(--text);
 }
 

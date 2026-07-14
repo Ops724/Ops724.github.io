@@ -25,6 +25,16 @@
   margin-bottom: 1.2rem;
 }
 
+.post-meta a {
+  color: inherit;
+  border-bottom: 1px solid transparent;
+}
+
+.post-meta a:hover,
+.post-meta a:focus-visible {
+  border-bottom-color: var(--line-strong);
+}
+
 .article-body {
   font-size: 1rem;
   color: #2a2a2a;
