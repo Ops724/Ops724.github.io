@@ -6,7 +6,6 @@ hexo.extend.helper.register('post_summary', function postSummary(post) {
   const source = post.excerpt || post.more || post.content || '';
   const plain = source
     .replace(/<pre[\s\S]*?<\/pre>/gi, ' ')
-    .replace(/<code[\s\S]*?<\/code>/gi, ' ')
     .replace(/<[^>]+>/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
