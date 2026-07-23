@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VMware Fusion 系列，DHCP 静态绑定 | OPS724 Blog</title>
+  <meta name="description" content="A bilingual personal blog for life notes and technical writing.">
+  <link rel="icon" href="/favicon.ico?v=1784801862766" type="image/x-icon">
+  <link rel="shortcut icon" href="/favicon.ico?v=1784801862766" type="image/x-icon">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/content.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+  
+  <body>
+    <div class="site-shell">
+      
+
+<header class="site-header">
+  <div
+    class="site-header-inner"
+    
+  >
+    <div class="site-header-profile">
+      <a class="site-avatar-link" href="/">
+        
+          <img
+            class="site-header-avatar"
+            src="/images/avatar.png"
+            alt="OPS724 的小站"
+          >
+        
+      </a>
+      <div class="site-identity">
+        <a class="site-brand" href="/">
+          OPS724 的小站
+        </a>
+        <p class="site-tagline">记录生活、分享技术。</p>
+      </div>
+    </div>
+    <div class="site-header-actions">
+      <nav class="site-nav" aria-label="Main">
+        
+          
+          <a
+            href="/"
+            class="is-active"
+            aria-current=&#34;page&#34;
+          >技术</a>
+        
+          
+          <a
+            href="/life/"
+            class=""
+            
+          >生活</a>
+        
+          
+          <a
+            href="/about/"
+            class=""
+            
+          >关于</a>
+        
+          
+          <a
+            href="/archives/"
+            class=""
+            
+          >归档</a>
+        
+          
+          <a
+            href="/categories/"
+            class=""
+            
+          >分类</a>
+        
+          
+          <a
+            href="/tags/"
+            class=""
+            
+          >标签</a>
+        
+      </nav>
+      
+        
+<div class="language-switcher">
+  <a href="/posts/vmware-dhcp-bind/" class="is-active">
+    中
+  </a>
+  <a href="/en/" class="">
+    EN
+  </a>
+</div>
+
+      
+    </div>
+  </div>
+</header>
+
+      <main class="site-main">
+        <article class="article article-post">
+  <header class="article-header">
+    <h1>VMware Fusion 系列，DHCP 静态绑定</h1>
+    <div class="post-meta">
+  <time datetime="2026-07-10T16:00:00.000Z">2026-07-11</time>
+  
+  
+    <span>
+      <a href="/categories/%E8%99%9A%E6%8B%9F%E5%8C%96/">虚拟化</a>
+    </span>
+  
+  
+    <span>
+      #<a href="/tags/%E5%B7%A5%E5%85%B7/">工具</a> #<a href="/tags/VMware-Fusion/">VMware Fusion</a> #<a href="/tags/%E7%BD%91%E7%BB%9C/">网络</a>
+    </span>
+  
+</div>
+
+    
+<div class="language-switcher">
+  <a href="/posts/vmware-dhcp-bind/" class="is-active">
+    中
+  </a>
+  <a href="/en/" class="">
+    EN
+  </a>
+</div>
+
+  </header>
+  <div class="article-body">
+    <blockquote>
+<p>这是一篇写于当时语境下的技术记录。技术发展日新月异，若其中某些方法、结论或版本信息已经过时，就把它当作一次技术考古吧。</p>
+<p>硬件：Apple M4<br>系统：Mac OS Tahoe 26.3<br>VMware Fusion：Professional 26H1（25388279）</p>
+</blockquote>
+<p>当我们创建了多台虚机的本地环境时，集群内一个稳定的网络状态是必不可少的，通过 VMware Fusion DHCP 配置绑定 MAC 地址是比较推荐的方式，统一在一个配置文件里管理全局，省去了在多台虚机间切换配置静态地址的繁琐。</p>
+<h2 id="VMware-Fusion-DHCP-添加静态绑定策略"><a href="#VMware-Fusion-DHCP-添加静态绑定策略" class="headerlink" title="VMware Fusion DHCP 添加静态绑定策略"></a>VMware Fusion DHCP 添加静态绑定策略</h2><ol>
+<li>备份原始配置文件</li>
+</ol>
+<pre class="language-zsh" data-language="zsh"><code class="language-zsh">sudo cp &#x2F;Library&#x2F;Preferences&#x2F;VMware\ Fusion&#x2F;vmnet8&#x2F;dhcpd.conf \
+         &#x2F;Library&#x2F;Preferences&#x2F;VMware\ Fusion&#x2F;vmnet8&#x2F;dhcpd.conf.backup</code></pre>
+<ol start="2">
+<li><code>sudo vim /Library/Preferences/VMware\ Fusion/vmnet8/dhcpd.conf</code>。</li>
+</ol>
+<pre class="language-zsh" data-language="zsh"><code class="language-zsh"># 增加静态绑定规则
+host vm &#123;
+    hardware ethernet 00:0c:29:4d:c5:ed;  # 虚拟机的MAC地址
+    fixed-address 172.16.29.128;          # 固定的IP地址
+    option domain-name &quot;&quot;;                # 域名解析服务器（可选）
+    option routers 172.16.29.2;           # 网关地址（可选）
+&#125;</code></pre>
+<p>两个 <code>option</code> 配置项可选，不指定则使用 DHCP 服务全局配置。</p>
+<ol start="3">
+<li>重启 VMware Fusion 网络</li>
+</ol>
+<pre class="language-zsh" data-language="zsh"><code class="language-zsh">sudo &#x2F;Applications&#x2F;VMware\ Fusion.app&#x2F;Contents&#x2F;Library&#x2F;vmnet-cli --stop
+sudo &#x2F;Applications&#x2F;VMware\ Fusion.app&#x2F;Contents&#x2F;Library&#x2F;vmnet-cli --start</code></pre>
+<p>规则生效。</p>
+
+  </div>
+  
+
+
+  <nav class="pagination">
+    
+      <a href="/posts/python-gil/">
+        <span>上一篇</span>
+        <strong>GIL Python 全局解释器锁</strong>
+      </a>
+    
+    
+      <a href="/posts/vmware-fusion-vmproxy/">
+        <span>下一篇</span>
+        <strong>VMware Fusion 系列，虚拟机配置代理访问外部资源</strong>
+      </a>
+    
+  </nav>
+
+
+</article>
+
+      </main>
+      <footer class="site-footer">
+  <p>OPS724 Blog</p>
+</footer>
+
+    </div>
+  </body>
+</html>

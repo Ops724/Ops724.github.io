@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VMware Fusion 系列，理解 NAT 网络通信 | OPS724 Blog</title>
+  <meta name="description" content="A bilingual personal blog for life notes and technical writing.">
+  <link rel="icon" href="/favicon.ico?v=1784801862766" type="image/x-icon">
+  <link rel="shortcut icon" href="/favicon.ico?v=1784801862766" type="image/x-icon">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/content.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+  
+  <body>
+    <div class="site-shell">
+      
+
+<header class="site-header">
+  <div
+    class="site-header-inner"
+    
+  >
+    <div class="site-header-profile">
+      <a class="site-avatar-link" href="/">
+        
+          <img
+            class="site-header-avatar"
+            src="/images/avatar.png"
+            alt="OPS724 的小站"
+          >
+        
+      </a>
+      <div class="site-identity">
+        <a class="site-brand" href="/">
+          OPS724 的小站
+        </a>
+        <p class="site-tagline">记录生活、分享技术。</p>
+      </div>
+    </div>
+    <div class="site-header-actions">
+      <nav class="site-nav" aria-label="Main">
+        
+          
+          <a
+            href="/"
+            class="is-active"
+            aria-current=&#34;page&#34;
+          >技术</a>
+        
+          
+          <a
+            href="/life/"
+            class=""
+            
+          >生活</a>
+        
+          
+          <a
+            href="/about/"
+            class=""
+            
+          >关于</a>
+        
+          
+          <a
+            href="/archives/"
+            class=""
+            
+          >归档</a>
+        
+          
+          <a
+            href="/categories/"
+            class=""
+            
+          >分类</a>
+        
+          
+          <a
+            href="/tags/"
+            class=""
+            
+          >标签</a>
+        
+      </nav>
+      
+        
+<div class="language-switcher">
+  <a href="/posts/vmware-fusion-nat/" class="is-active">
+    中
+  </a>
+  <a href="/en/" class="">
+    EN
+  </a>
+</div>
+
+      
+    </div>
+  </div>
+</header>
+
+      <main class="site-main">
+        <article class="article article-post">
+  <header class="article-header">
+    <h1>VMware Fusion 系列，理解 NAT 网络通信</h1>
+    <div class="post-meta">
+  <time datetime="2026-07-08T16:00:00.000Z">2026-07-09</time>
+  
+  
+    <span>
+      <a href="/categories/%E8%99%9A%E6%8B%9F%E5%8C%96/">虚拟化</a>
+    </span>
+  
+  
+    <span>
+      #<a href="/tags/%E5%B7%A5%E5%85%B7/">工具</a> #<a href="/tags/VMware-Fusion/">VMware Fusion</a> #<a href="/tags/%E7%BD%91%E7%BB%9C/">网络</a>
+    </span>
+  
+</div>
+
+    
+<div class="language-switcher">
+  <a href="/posts/vmware-fusion-nat/" class="is-active">
+    中
+  </a>
+  <a href="/en/" class="">
+    EN
+  </a>
+</div>
+
+  </header>
+  <div class="article-body">
+    <blockquote>
+<p>这是一篇写于当时语境下的技术记录。技术发展日新月异，若其中某些方法、结论或版本信息已经过时，就把它当作一次技术考古吧。</p>
+<p>硬件：Apple M4<br>系统：Mac OS Tahoe 26.3<br>VMware Fusion：Professional 26H1（25388279）<br>虚拟机 OS：Ubuntu 26.04 LTS</p>
+</blockquote>
+<p>如今 VMware Fusion 对于个人用户已经完全免费了，这可真是个天大的利好。无论是工作搬砖还是学习实验，经常需要本地虚拟化环境支持，而 VMware Fusion 绝对是个人开发者的首选平台。所以，接下来我会通过几篇小文章记录一下利用 VMware Fusion 在本地搭建实验环境时的一些配置方法和个人理解。</p>
+<p>第一篇的话先做些知识铺垫，理解 NAT 模式下的网络通信原理。</p>
+<h2 id="VMware-Fusion-NAT-模式下的三个关键服务"><a href="#VMware-Fusion-NAT-模式下的三个关键服务" class="headerlink" title="VMware Fusion NAT 模式下的三个关键服务"></a>VMware Fusion NAT 模式下的三个关键服务</h2><p>在 NAT 模式（VMware Fusion 中对应 Share with my Mac）和 Host-Only 模式（VMware Fusion 中对应 Private to my Mac）下，VMware Fusion 通过内部核心服务协同工作，构建了一个虚拟网络环境，让虚拟机可以顺畅地访问外部网络以及与宿主机之间互访。</p>
+<p>启动 VMware Fusion 后，我们通过以下命令输出来验证这一点并梳理清楚他们之间的关系：</p>
+<pre class="language-zsh" data-language="zsh"><code class="language-zsh"># 首先查看下 VMware Fusion 的网络配置
+sudo cat &#x2F;Library&#x2F;Preferences&#x2F;VMware\ Fusion&#x2F;networking</code></pre>
+<p><img src="/posts/vmware-fusion-nat/vmware_networking_cfg.png" alt="vmware_networking_cfg"></p>
+<p>上图输出可以看到，VMware Fusion 会根据配置创建出 <strong>VNET_1</strong>、<strong>VNET_8</strong> 两套虚拟网络环境（分别对应输出中红框和绿框部分），它们各自内部开启 DHCP 服务，并分配了不同的私有网段。其中绿色框的 <strong>VNET_8</strong> 中还开启了 NAT 服务，因此它对应 NAT 模式；而红框的 <strong>VNET_1</strong> 只开启 DHCP，它对应 Host-Only 模式。</p>
+<pre class="language-zsh" data-language="zsh"><code class="language-zsh"># 查看 VMware Fusion 网络服务状态
+sudo &#x2F;Applications&#x2F;VMware\ Fusion.app&#x2F;Contents&#x2F;vmnet-cli --status</code></pre>
+<p><img src="/posts/vmware-fusion-nat/vmware_vmnet_status.png" alt="vmware_vmnet_status"></p>
+<p>上图输出再次证明了 VMware Fusion 网络由多个内部服务协同工作的说法。</p>
+<pre class="language-zsh" data-language="zsh"><code class="language-zsh"># 从系统进程层面查看
+ps -ax -o pid,args | grep &quot;vmnet-&quot; | grep -v &quot;grep&quot;</code></pre>
+<p><img src="/posts/vmware-fusion-nat/vmware_network_services_process.png" alt="vmware_network_services_process"></p>
+<p>上图输出可以看到名为 <code>vmnet-bridge</code>、<code>vmnet-nat</code> 和两个 <code>vmnet-dhcpd</code>（使用不同配置文件启动，分别服务 <strong>VNET_1</strong>、<strong>VNET_8</strong>） 的进程在工作。</p>
+<pre class="language-zsh" data-language="zsh"><code class="language-zsh"># 从宿主机角度查看 VMware Fusion 对当前网络环境的影响
+ifconfig</code></pre>
+<p><img src="/posts/vmware-fusion-nat/vmware_bridge_info.png" alt="vmware_bridge_info"></p>
+<p>输出中红框的 <strong>bridge100</strong> 和 绿框的 <strong>bridge101</strong> 可以理解为是由 <code>vmnet-bridge</code> 这个进程分别为 <strong>VNET_1</strong>、<strong>VNET_8</strong> 两个虚拟网络环境创建的虚拟交换机，<strong>vmenet0</strong>、<strong>vmenet1</strong>、<strong>vmenet2</strong> 是交换机上的接口，创建虚拟机后，虚拟机相当于直连在这个交换机的接口上。</p>
+<p>综上信息，得出结论，在 NAT 模式下工作时（<strong>VNET_8</strong> 虚拟网络环境）：</p>
+<ul>
+<li>vmnet-bridge：理解为二层交换机，连接所有虚拟机和宿主机。</li>
+<li>vmnet-dhcpd：服务于私有（虚拟）网络中的 DHCP 服务。</li>
+<li>vmnet-natd：可理解为路由器（NAT 网关），虚拟机访问外部资源都通过它。</li>
+</ul>
+<h2 id="虚拟机与宿主机互通"><a href="#虚拟机与宿主机互通" class="headerlink" title="虚拟机与宿主机互通"></a>虚拟机与宿主机互通</h2><pre class="language-zsh" data-language="zsh"><code class="language-zsh"># 重点关注这个对应 VNET_8 虚拟网络环境的虚拟网桥接口
+ifconfig bridge101 </code></pre>
+<p><img src="/posts/vmware-fusion-nat/vmware_nat_bridge.png" alt="vmware_nat_bridge"></p>
+<p>输出中红框部分显示了这个虚拟网桥接口 IP 地址为 172.16.29.1。这个地址将作为宿主机在 <strong>VNET_8</strong> 这个虚拟网络中使用的 IP 地址。</p>
+<pre class="language-zsh" data-language="zsh"><code class="language-zsh"># 查看服务于 VNET_8 虚拟网络环境的 DHCP 服务配置
+sudo cat &#x2F;Library&#x2F;Preferences&#x2F;VMware\ Fusion&#x2F;vmnet8&#x2F;dhcpd.conf</code></pre>
+<p><img src="/posts/vmware-fusion-nat/vmware_dhcp_cfg.png" alt="vmware_dhcp_cfg"></p>
+<p>DHCP 配置红框部分显示了一个静态绑定的地址分配规则，正是上面 <strong>bridge101</strong> 网桥接口的地址。</p>
+<pre class="language-zsh" data-language="zsh"><code class="language-zsh"># 在宿主机上启动一个 http 服务，用于验证虚拟机对宿主机（172.16.29.1）的访问。
+python3 -m http.server 8000</code></pre>
+<pre class="language-zsh" data-language="zsh"><code class="language-zsh"># 从虚拟机上测试与宿主机网络连通性
+curl -I http:&#x2F;&#x2F;172.16.29.1:8000&#x2F;</code></pre>
+<p><img src="/posts/vmware-fusion-nat/vmware_vm_curl_host_http_service.png" alt="vmware_vm_curl_host_http_service"></p>
+<p>通过访问 172.16.29.1 地址的 8000 端口成功，说明与宿主机通过 172.16.29.1 地址通信正常。</p>
+<pre class="language-zsh" data-language="zsh"><code class="language-zsh"># 从虚拟机上测试与宿主机网络连通路径
+traceroute 172.16.29.1</code></pre>
+<p><img src="/posts/vmware-fusion-nat/vmware_vm_traceroute_host.png" alt="vmware_vm_traceroute_host"></p>
+<p>根据路由跟踪信息，访问 172.16.29.1（宿主机），通过虚拟网桥同网段二层直连，不经任何网关。</p>
+<h2 id="虚拟机与虚拟机互通"><a href="#虚拟机与虚拟机互通" class="headerlink" title="虚拟机与虚拟机互通"></a>虚拟机与虚拟机互通</h2><p>原理与 <strong>虚拟机与宿主机互通</strong> 一样，都是透过 <strong>虚拟网桥同网段二层直连</strong>，不经任何网关。</p>
+<h2 id="虚拟机与外部资源互通"><a href="#虚拟机与外部资源互通" class="headerlink" title="虚拟机与外部资源互通"></a>虚拟机与外部资源互通</h2><pre class="language-zsh" data-language="zsh"><code class="language-zsh"># 查看服务于 VNET_8 虚拟网络环境的 DHCP 服务配置
+sudo cat &#x2F;Library&#x2F;Preferences&#x2F;VMware\ Fusion&#x2F;vmnet8&#x2F;dhcpd.conf</code></pre>
+<p><img src="/posts/vmware-fusion-nat/vmware_dhcp_cfg.png" alt="vmware_dhcp_cfg"></p>
+<p>DHCP 配置绿框部分设置了虚拟机将被分配的默认网关地址为 172.16.29.2，这是 <code>vmnet-natd</code> 服务（相当于虚拟网络中的路由器）的地址。</p>
+<pre class="language-zsh" data-language="zsh"><code class="language-zsh"># 在虚拟机上查看默认路由
+ip route</code></pre>
+<p><img src="/posts/vmware-fusion-nat/vmware_vm_route_info.png" alt="vmware_vm_route_info"></p>
+<p>默认路由（网关设置）指向了 172.16.29.2 这个地址，也就是说虚拟机所有对外部资源的访问都将透过  <code>vmnet-natd</code> 进行 NAT（地址转换）。</p>
+<pre class="language-zsh" data-language="zsh"><code class="language-zsh"># 从虚拟机上测试下对外部资源的访问
+traceroute www.baidu.com</code></pre>
+<p><img src="/posts/vmware-fusion-nat/vmware_vm_to_baidu.png" alt="vmware_vm_to_baidu"></p>
+<p>红框部分显示了虚拟机访问外部资源路径的第一条就是 172.16.29.2。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>以上就是 VMware Fusion 网络工作在 NAT 模式下，虚拟机内部互通以及对外部资源访问的大致梳理。下一篇笔记会记录一下在此基础上配置虚拟机通过宿主机上的梯子代理访问外部资源，一劳永逸解决实验中依赖外网镜像仓库、Github 拉取代码等现实问题。</p>
+
+  </div>
+  
+
+
+  <nav class="pagination">
+    
+      <a href="/posts/vmware-fusion-vmproxy/">
+        <span>上一篇</span>
+        <strong>VMware Fusion 系列，虚拟机配置代理访问外部资源</strong>
+      </a>
+    
+    
+  </nav>
+
+
+</article>
+
+      </main>
+      <footer class="site-footer">
+  <p>OPS724 Blog</p>
+</footer>
+
+    </div>
+  </body>
+</html>

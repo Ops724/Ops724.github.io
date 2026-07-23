@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VMware Fusion 系列，虚拟机配置代理访问外部资源 | OPS724 Blog</title>
+  <meta name="description" content="A bilingual personal blog for life notes and technical writing.">
+  <link rel="icon" href="/favicon.ico?v=1784801862766" type="image/x-icon">
+  <link rel="shortcut icon" href="/favicon.ico?v=1784801862766" type="image/x-icon">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/content.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+  
+  <body>
+    <div class="site-shell">
+      
+
+<header class="site-header">
+  <div
+    class="site-header-inner"
+    
+  >
+    <div class="site-header-profile">
+      <a class="site-avatar-link" href="/">
+        
+          <img
+            class="site-header-avatar"
+            src="/images/avatar.png"
+            alt="OPS724 的小站"
+          >
+        
+      </a>
+      <div class="site-identity">
+        <a class="site-brand" href="/">
+          OPS724 的小站
+        </a>
+        <p class="site-tagline">记录生活、分享技术。</p>
+      </div>
+    </div>
+    <div class="site-header-actions">
+      <nav class="site-nav" aria-label="Main">
+        
+          
+          <a
+            href="/"
+            class="is-active"
+            aria-current=&#34;page&#34;
+          >技术</a>
+        
+          
+          <a
+            href="/life/"
+            class=""
+            
+          >生活</a>
+        
+          
+          <a
+            href="/about/"
+            class=""
+            
+          >关于</a>
+        
+          
+          <a
+            href="/archives/"
+            class=""
+            
+          >归档</a>
+        
+          
+          <a
+            href="/categories/"
+            class=""
+            
+          >分类</a>
+        
+          
+          <a
+            href="/tags/"
+            class=""
+            
+          >标签</a>
+        
+      </nav>
+      
+        
+<div class="language-switcher">
+  <a href="/posts/vmware-fusion-vmproxy/" class="is-active">
+    中
+  </a>
+  <a href="/en/" class="">
+    EN
+  </a>
+</div>
+
+      
+    </div>
+  </div>
+</header>
+
+      <main class="site-main">
+        <article class="article article-post">
+  <header class="article-header">
+    <h1>VMware Fusion 系列，虚拟机配置代理访问外部资源</h1>
+    <div class="post-meta">
+  <time datetime="2026-07-09T16:00:00.000Z">2026-07-10</time>
+  
+  
+    <span>
+      <a href="/categories/%E8%99%9A%E6%8B%9F%E5%8C%96/">虚拟化</a>
+    </span>
+  
+  
+    <span>
+      #<a href="/tags/%E5%B7%A5%E5%85%B7/">工具</a> #<a href="/tags/VMware-Fusion/">VMware Fusion</a> #<a href="/tags/%E7%BD%91%E7%BB%9C/">网络</a>
+    </span>
+  
+</div>
+
+    
+<div class="language-switcher">
+  <a href="/posts/vmware-fusion-vmproxy/" class="is-active">
+    中
+  </a>
+  <a href="/en/" class="">
+    EN
+  </a>
+</div>
+
+  </header>
+  <div class="article-body">
+    <blockquote>
+<p>这是一篇写于当时语境下的技术记录。技术发展日新月异，若其中某些方法、结论或版本信息已经过时，就把它当作一次技术考古吧。</p>
+<p>硬件：Apple M4<br>系统：Mac OS Tahoe 26.3<br>VMware Fusion：Professional 26H1（25388279）<br>虚拟机 OS：Ubuntu 26.04 LTS</p>
+</blockquote>
+<p>“墙” 内的网络环境对于开发者不太友好，为了顺利访问各种官方源&#x2F;仓库，“梯子” 必不可少，省去了各种国内源替换配置。那么 VMware Fusion 管理的虚拟机如何搭上宿主机上的这把 “梯子” 呢？</p>
+<h2 id="VMware-Fusion-虚拟机配置-http-代理"><a href="#VMware-Fusion-虚拟机配置-http-代理" class="headerlink" title="VMware Fusion 虚拟机配置 http 代理"></a>VMware Fusion 虚拟机配置 http 代理</h2><p>上一篇文章，大致理清了 VMware Fusion 网络运行原理，下面在此基础上配置下虚拟机的 http 代理。</p>
+<h3 id="宿主机代理软件"><a href="#宿主机代理软件" class="headerlink" title="宿主机代理软件"></a>宿主机代理软件</h3><p><img src="/posts/vmware-fusion-vmproxy/clash.png" alt="clash"></p>
+<p>宿主机上代理软件开启允许局域网访问，记住端口 7897。</p>
+<h3 id="VMware-Fusion-虚拟机"><a href="#VMware-Fusion-虚拟机" class="headerlink" title="VMware Fusion 虚拟机"></a>VMware Fusion 虚拟机</h3><p><img src="/posts/vmware-fusion-vmproxy/curl_google.png" alt="curl_google"></p>
+<p>配置代理前无法顺利访问 Google。</p>
+<pre class="language-zsh" data-language="zsh"><code class="language-zsh"># 设置 http 代理
+export http_proxy&#x3D;http:&#x2F;&#x2F;172.16.29.1:7897
+
+# 设置 https 代理
+export https_proxy&#x3D;http:&#x2F;&#x2F;172.16.29.1:7897
+
+# 再次测试访问 Google，-v 参数输出调试信息
+# 这里需注意，grep 只处理 stdout 标准输出
+# 流，而调试数据走 stderr 标准错误，所以需
+# 要 2&gt;&amp;1 先进行合流。
+curl -I https:&#x2F;&#x2F;www.google.com -v 2&gt;&amp;1 | grep -E &quot;200|proxy&quot;</code></pre>
+<p><img src="/posts/vmware-fusion-vmproxy/curl_Iv_google.png" alt="curl_Iv_google"></p>
+<p><code>curl</code>、<code>wget</code>、<code>apt</code>、<code>pip</code> 等命令的标准实现中，会读取 <code>http_proxy</code>、<code>https_proxy</code> 环境变量。可以看到截图中访问 Google 成功，并且调试信息部分（红框）明确指出了是通过环境变量设置的代理服务进行的访问。</p>
+<pre class="language-zsh" data-language="zsh"><code class="language-zsh"># 测试 docker 拉取镜像
+docker run --rm hello-world</code></pre>
+<p><img src="/posts/vmware-fusion-vmproxy/docker_pull_test_timeout.png" alt="docker_pull_test_timeout"></p>
+<p>继续测试 docker 拉取，发现仍然没有成功，这说明 docker 服务启动时不会读取 <code>http_proxy</code>、<code>https_proxy</code> 环境变量，使用代理需要单独配置。</p>
+<p><code>sudo vim /etc/docker/daemon.json</code></p>
+<pre class="language-json" data-language="json"><code class="language-json"><span class="token punctuation">&#123;</span>
+  <span class="token property">"proxies"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span>
+    <span class="token property">"http-proxy"</span><span class="token operator">:</span> <span class="token string">"http://172.16.29.1:7897"</span><span class="token punctuation">,</span>
+    <span class="token property">"https-proxy"</span><span class="token operator">:</span> <span class="token string">"http://172.16.29.1:7897"</span><span class="token punctuation">,</span>
+    <span class="token property">"no-proxy"</span><span class="token operator">:</span> <span class="token string">"localhost,127.0.0.1,.local"</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span></code></pre>
+<p><code>sudo systemctl restart docker</code></p>
+<p><img src="/posts/vmware-fusion-vmproxy/docker_pull_test_ok.png" alt="docker_pull_test_ok"></p>
+<p>再次尝试 docker 拉取，成功。</p>
+<h2 id="git-配置代理"><a href="#git-配置代理" class="headerlink" title="git 配置代理"></a>git 配置代理</h2><p><code>git</code> 命令虽然读取系统环境变量，但其对大小写敏感，需设置：</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash"><span class="token builtin class-name">export</span> <span class="token assign-left variable">HTTP_PROXY</span><span class="token operator">=</span>http://172.16.29.1:7897
+<span class="token builtin class-name">export</span> <span class="token assign-left variable">HTTPS_PROXY</span><span class="token operator">=</span>http://172.16.29.1:7897</code></pre>
+<p>或者</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash"><span class="token comment"># 此方法设置后，优先级优于系统环境变量。</span>
+<span class="token function">git</span> config <span class="token parameter variable">--global</span> http.proxy http://172.16.29.1:7897
+<span class="token function">git</span> config <span class="token parameter variable">--global</span> https.proxy http://172.16.29.1:7897</code></pre>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>至此 VMware Fusion 虚拟机配置代理访问外部资源成功。</p>
+
+  </div>
+  
+
+
+  <nav class="pagination">
+    
+      <a href="/posts/vmware-dhcp-bind/">
+        <span>上一篇</span>
+        <strong>VMware Fusion 系列，DHCP 静态绑定</strong>
+      </a>
+    
+    
+      <a href="/posts/vmware-fusion-nat/">
+        <span>下一篇</span>
+        <strong>VMware Fusion 系列，理解 NAT 网络通信</strong>
+      </a>
+    
+  </nav>
+
+
+</article>
+
+      </main>
+      <footer class="site-footer">
+  <p>OPS724 Blog</p>
+</footer>
+
+    </div>
+  </body>
+</html>
