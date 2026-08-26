@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>理解 Go 语言 GMP 高校调度模型 | OPS724 Blog</title>
+  <meta name="description" content="A bilingual personal blog for life notes and technical writing.">
+  <link rel="icon" href="/favicon.ico?v=1787737230839" type="image/x-icon">
+  <link rel="shortcut icon" href="/favicon.ico?v=1787737230839" type="image/x-icon">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/content.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+  
+  <body>
+    <div class="site-shell">
+      
+
+<header class="site-header">
+  <div
+    class="site-header-inner"
+    
+  >
+    <div class="site-header-profile">
+      <a class="site-avatar-link" href="/">
+        
+          <img
+            class="site-header-avatar"
+            src="/images/avatar.png"
+            alt="OPS724 的小站"
+          >
+        
+      </a>
+      <div class="site-identity">
+        <a class="site-brand" href="/">
+          OPS724 的小站
+        </a>
+        <p class="site-tagline">记录生活、分享技术。</p>
+      </div>
+    </div>
+    <div class="site-header-actions">
+      <nav class="site-nav" aria-label="Main">
+        
+          
+          <a
+            href="/"
+            class="is-active"
+            aria-current=&#34;page&#34;
+          >技术</a>
+        
+          
+          <a
+            href="/life/"
+            class=""
+            
+          >生活</a>
+        
+          
+          <a
+            href="/about/"
+            class=""
+            
+          >关于</a>
+        
+          
+          <a
+            href="/archives/"
+            class=""
+            
+          >归档</a>
+        
+          
+          <a
+            href="/categories/"
+            class=""
+            
+          >分类</a>
+        
+          
+          <a
+            href="/tags/"
+            class=""
+            
+          >标签</a>
+        
+      </nav>
+      
+        
+<div class="language-switcher">
+  <a href="/posts/go-gmp/" class="is-active">
+    中
+  </a>
+  <a href="/en/" class="">
+    EN
+  </a>
+</div>
+
+      
+    </div>
+  </div>
+</header>
+
+      <main class="site-main">
+        <article class="article article-post">
+  <header class="article-header">
+    <h1>理解 Go 语言 GMP 高校调度模型</h1>
+    <div class="post-meta">
+  <time datetime="2026-07-29T16:00:00.000Z">2026-07-30</time>
+  
+  
+    <span>
+      <a href="/categories/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/">编程语言</a>
+    </span>
+  
+  
+    <span>
+      #<a href="/tags/Go/">Go</a>
+    </span>
+  
+</div>
+
+    
+<div class="language-switcher">
+  <a href="/posts/go-gmp/" class="is-active">
+    中
+  </a>
+  <a href="/en/" class="">
+    EN
+  </a>
+</div>
+
+  </header>
+  <div class="article-body">
+    <blockquote>
+<p>这是一篇写于当时语境下的技术记录。技术发展日新月异，若其中某些方法、结论或版本信息已经过时，就把它当作一次技术考古吧。</p>
+</blockquote>
+<p>GMP 是 Go 运行时实现高效并发的调度器，它由三部分组成：</p>
+<ol>
+<li>G（Goroutine）：Go 语言中的轻量级协程，它的初始栈空间极小，创建、切换成本远低于操作系统线程，在 GMP 模型中可理解为代表一个并发执行的任务。</li>
+<li>M（Machine）：代表操作系统线程，是 G 执行的实体。</li>
+<li>P（Processor）：逻辑处理器，是调度的核心。它维护一个本地 goroutine 队列，并负责将 G 调度到 M 上执行。</li>
+</ol>
+<h2 id="核心工作流程"><a href="#核心工作流程" class="headerlink" title="核心工作流程"></a>核心工作流程</h2><ol>
+<li><strong>任务创建与入队</strong>：当使用关键字 <code>go func()</code>，就相当于创建了一个新的 G，此时调度器会优先将其放入当前 P 的本地队列中。如果本地队列已满，则会将队列中的一半 G 与新的 G  一起放入全局队列，以实现负载均衡。</li>
+<li><strong>任务的获取与执行</strong>：M 会进入一个调度循环，优先从绑定的 P 的本地队列中无锁获取 G 来执行。这种设计避免了全局锁的竞争，极大提高了调度效率。</li>
+<li><strong>任务窃取</strong>：如果 M 绑定的 P 本地队列为空，M 不会立即休眠，而是会尝试 “任务窃取”，从其它 P 的本地队列中 “偷取” 一半的 G 来执行。如果依然找不到，才会去尝试从全局队列获取。这保证了 CPU 资源的高效利用。</li>
+<li><strong>阻塞处理</strong>：当一个 G 进行网络 I&#x2F;O 或发生阻塞性的系统调用时，它所在的 M 也会被阻塞，为了防止 P 闲置，Go 调度器会使 P 与当前阻塞的 M 解绑，并迅速去寻找一个空闲的 M（或创建一个新的 M）来接管自己，继续执行本地队列中的其它 G。当系统调用结束后，该 G 会重新变为可运行状态，被放回某个 P 的队列中等待调度。</li>
+<li><strong>抢占式调度</strong>：从 Go 1.14 开始，引入了基于信号的真抢占式调度。如果一个 G 运行时间超过一定阈值（如 10ms），调度器会向该 M 发送信号，中断当前 G 的执行并将其放回队列，然后执行下一个 G。这保证了调度的公平性，防止单个 G 长时间霸占 CPU。</li>
+</ol>
+<h2 id="理解-M-N-调度策略"><a href="#理解-M-N-调度策略" class="headerlink" title="理解 M:N 调度策略"></a>理解 M:N 调度策略</h2><ol>
+<li><p>传统模型 1:1 映射（完全依赖 OS 调度），这是大多数传统语言（比如 C&#x2F;C++）的标准做法。</p>
+<ul>
+<li>工作原理：语言层面的一个线程，在内核中严格对应一个真实的操作系统线程。</li>
+<li>特点：实现简单，能充分利用多核 CPU，且当线程发生 I&#x2F;O 阻塞时，操作系统能将其挂起并切换。 但创建和销毁开销极大（通常需要分配 MB 级别的栈内存），且上下文切换涉及用户态与内核态的切换，成本很高。</li>
+</ul>
+</li>
+<li><p>N:1 模型，Python</p>
+<ul>
+<li>工作原理：N个用户态协程，全部塞进一个操作系统线程（Python GIL 锁的原因）上执行</li>
+<li>特点：虽然切换快，但无法利用多核 CPU。只要有一个协程阻塞，整个线程（所有协程）都会卡住。</li>
+</ul>
+</li>
+<li><p>M:N 模型（现代高性能并发）</p>
+<ul>
+<li>N 个用户态协程，被调度器动态分配到 M 个操作系统线程上执行。</li>
+<li>特点：即拥有 N:1 模型 “用户态切换开销低” 的优点，又拥有 1:1 模型 “能利用多核 CPU” 的优点。</li>
+</ul>
+</li>
+</ol>
+<p>Go  语言 GMP 正是 M:N 的完美体现：</p>
+<ul>
+<li>可以轻松创建几百万个 goroutine（N 极大）</li>
+<li>但 Go 运行时底层可能只向操作系统申请了十几个内核线程 M（M 较小，数量通常接近 CPU 核心数）。</li>
+<li>P（Processor） 的作用就是 Go 调度器为了实现 M:N 模型而设计的 “调度枢纽”。P 维护着 G 的队列，并负责把 N 个 G 均匀地分配给 M 个系统线程去执行。</li>
+</ul>
+<p>总结下，M:N 描述的是宏观的映射比例（海量协程复用少量系统线程）。</p>
+<p>那么再来分析一个问题，<strong>在任何时刻，一个 M（操作系统线程）只能执行一个 G（协程），这一点 M:N 和 1:1 模型都一样，那么它们的区别到底是什么</strong>？<br>其实核心区别不在于 “<strong>同一时刻能执行多少个任务</strong>”，而在于 “<strong>系统最多能同时存在多少个任务</strong>“ 以及 “<strong>任务的切换成本</strong>”。</p>
+<p>三个核心差异看透他们的本质：</p>
+<ol>
+<li><p><strong>并发量上线（能创建多少个任务）</strong></p>
+<ul>
+<li>1:1 模型：因为 1 个用户线程&#x3D; 1 个系统线程，而 OS 线程是十分昂贵的资源（每个系统线程默认占用 1M ~ 8M 内存，创建需要系统调用）。所以，如果处理 10 万个并发请求，就得创建 10 万个 OS 线程，这通常会直接耗尽内存或导致系统崩溃。</li>
+<li>M:N 模型：因为 N 个协程共享 M 个 OS 线程。协程（并发执行的代码、上线文）是用户态的，初始栈仅仅 2 KB，创建成本低。可以轻松创建大量（百万）协程，但底层可能只需要几十个 OS 线程就能把它们轮流执行完。</li>
+</ul>
+</li>
+<li><p><strong>任务切换成本（换人干活有多快）</strong></p>
+<ul>
+<li>1:1 模型：当 OS 线程 A 需要切换到线程 B 时，必须发生上下文切换。这需要陷入内核态，保存 A 的所有寄存器、内核栈、内存映射，再恢复 B 的状态，这个过程极其沉重。</li>
+<li>M:N 模型：当 G1 需要切换到 G2 时，Go Runtime 在用户态就完成了切换。只需要保存 G1 的栈指针（SP）和程序计数器（PC），然后加载 G2 的 SP 和 PC。整个过程只需要几十到几百纳秒（ns），比 OS 线程切换快几个数量级。</li>
+</ul>
+</li>
+<li><p><strong>阻塞时的行为（一个人请假，会影响其他人吗？）</strong></p>
+<ul>
+<li>1:1 模型：如果你的一个线程发起了一个耗时的网络请求（阻塞），这个 OS 线程就会挂起。如果你依赖这个线程来处理后续逻辑，整个流程就卡住了。为了不让整个系统卡死，你被迫引入复杂的“异步回调”或“事件循环”（比如 Node.js 或 Java 的 Netty），代码极其难写。</li>
+<li>M:N 模型：在 Go 中，如果 G1 阻塞了，M 跟着阻塞，但 Go 调度器会瞬间把 P 交给另一个空闲的 M2，让 M2 继续执行队列里的 G2、G3。对于开发者来说，你依然可以像写同步代码一样写高并发程序，完全不需要关心底层的阻塞和切换。</li>
+</ul>
+</li>
+</ol>
+<p>总结，“同一时刻 M 只能执行一个 G”，是物理执行层面的真相；而 M:N 模型带来的巨大优势，是逻辑调度层面的魔法。它通过“时间片轮转”和“用户态调度”，用极低的成本，打破了操作系统线程数量的物理限制。</p>
+<h2 id="GMP-模型的优势"><a href="#GMP-模型的优势" class="headerlink" title="GMP 模型的优势"></a>GMP 模型的优势</h2><ul>
+<li>高效并发与低开销：通过大量轻量级的 G 和在用户态运行的调度器，Go 可以轻松应对高并发场景，且上下文切换成本极低。</li>
+<li>充分利用多核：P 的数量与 CPU 核心数对应，使得程序能充分利用多核处理器的运算能力。</li>
+<li>避免全局锁竞争：每个 P 拥有自己的本地队列，M 在大多数情况下可以无锁地获取 G，显著提高了系统性能。</li>
+<li>动态负载均衡：“任务窃取” 与 “阻塞处理” 机制保证了 CPU 资源的高效利用，即使在发生阻塞或负载不均时也能保持高吞吐量。</li>
+</ul>
+
+  </div>
+  
+
+
+  <nav class="pagination">
+    
+      <a href="/posts/go-bench/">
+        <span>上一篇</span>
+        <strong>Go 语言测试框架 testing 基准测试</strong>
+      </a>
+    
+    
+      <a href="/posts/network-vlan/">
+        <span>下一篇</span>
+        <strong>利用 Linux 网络虚拟化理解 VLAN 技术</strong>
+      </a>
+    
+  </nav>
+
+
+</article>
+
+      </main>
+      <footer class="site-footer">
+  <p>OPS724 Blog</p>
+</footer>
+
+    </div>
+  </body>
+</html>

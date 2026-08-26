@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="420" viewBox="0 0 720 420" role="img" aria-labelledby="title desc">
+  <title id="title">Placeholder image</title>
+  <desc id="desc">A simple centered placeholder for blog image layout tests.</desc>
+  <rect width="720" height="420" fill="#f5f5f5"/>
+  <rect x="72" y="72" width="576" height="276" fill="#ffffff" stroke="#dedede" stroke-width="2"/>
+  <text x="360" y="205" text-anchor="middle" fill="#555555" font-size="28" font-family="Georgia, serif">Centered Image Placeholder</text>
+</svg>

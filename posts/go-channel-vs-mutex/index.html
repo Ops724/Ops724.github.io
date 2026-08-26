@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Go 语言并发编程中 Channel、Mutex 该如何选择 | OPS724 Blog</title>
+  <meta name="description" content="A bilingual personal blog for life notes and technical writing.">
+  <link rel="icon" href="/favicon.ico?v=1787737230839" type="image/x-icon">
+  <link rel="shortcut icon" href="/favicon.ico?v=1787737230839" type="image/x-icon">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/content.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+  
+  <body>
+    <div class="site-shell">
+      
+
+<header class="site-header">
+  <div
+    class="site-header-inner"
+    
+  >
+    <div class="site-header-profile">
+      <a class="site-avatar-link" href="/">
+        
+          <img
+            class="site-header-avatar"
+            src="/images/avatar.png"
+            alt="OPS724 的小站"
+          >
+        
+      </a>
+      <div class="site-identity">
+        <a class="site-brand" href="/">
+          OPS724 的小站
+        </a>
+        <p class="site-tagline">记录生活、分享技术。</p>
+      </div>
+    </div>
+    <div class="site-header-actions">
+      <nav class="site-nav" aria-label="Main">
+        
+          
+          <a
+            href="/"
+            class="is-active"
+            aria-current=&#34;page&#34;
+          >技术</a>
+        
+          
+          <a
+            href="/life/"
+            class=""
+            
+          >生活</a>
+        
+          
+          <a
+            href="/about/"
+            class=""
+            
+          >关于</a>
+        
+          
+          <a
+            href="/archives/"
+            class=""
+            
+          >归档</a>
+        
+          
+          <a
+            href="/categories/"
+            class=""
+            
+          >分类</a>
+        
+          
+          <a
+            href="/tags/"
+            class=""
+            
+          >标签</a>
+        
+      </nav>
+      
+        
+<div class="language-switcher">
+  <a href="/posts/go-channel-vs-mutex/" class="is-active">
+    中
+  </a>
+  <a href="/en/" class="">
+    EN
+  </a>
+</div>
+
+      
+    </div>
+  </div>
+</header>
+
+      <main class="site-main">
+        <article class="article article-post">
+  <header class="article-header">
+    <h1>Go 语言并发编程中 Channel、Mutex 该如何选择</h1>
+    <div class="post-meta">
+  <time datetime="2026-08-03T16:00:00.000Z">2026-08-04</time>
+  
+  
+    <span>
+      <a href="/categories/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/">编程语言</a>
+    </span>
+  
+  
+    <span>
+      #<a href="/tags/Go/">Go</a>
+    </span>
+  
+</div>
+
+    
+<div class="language-switcher">
+  <a href="/posts/go-channel-vs-mutex/" class="is-active">
+    中
+  </a>
+  <a href="/en/" class="">
+    EN
+  </a>
+</div>
+
+  </header>
+  <div class="article-body">
+    <blockquote>
+<p>这是一篇写于当时语境下的技术记录。技术发展日新月异，若其中某些方法、结论或版本信息已经过时，就把它当作一次技术考古吧。</p>
+</blockquote>
+<p>需求：100 个协程，每个协程累加 1000 次，最终结果必须是 100,000。</p>
+<ol>
+<li>Mutex 方式（保护共享状态，共享内存+锁），这是最正统的做法。多个协程去修改同一个变量，加一把锁保护起来。</li>
+</ol>
+<pre class="language-go" data-language="go"><code class="language-go"><span class="token keyword">package</span> main
+
+<span class="token keyword">import</span> <span class="token punctuation">(</span>
+    <span class="token string">"fmt"</span>
+    <span class="token string">"sync"</span>
+<span class="token punctuation">)</span>
+
+<span class="token keyword">var</span> count <span class="token builtin">int</span>
+<span class="token keyword">var</span> mu sync<span class="token punctuation">.</span>Mutex
+<span class="token keyword">var</span> wg sync<span class="token punctuation">.</span>WaitGroup
+
+<span class="token keyword">func</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">for</span> i <span class="token operator">:=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> <span class="token number">100</span><span class="token punctuation">;</span> i<span class="token operator">++</span> <span class="token punctuation">&#123;</span>
+        wg<span class="token punctuation">.</span><span class="token function">Add</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
+        <span class="token keyword">go</span> <span class="token keyword">func</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">defer</span> wg<span class="token punctuation">.</span><span class="token function">Done</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+            <span class="token keyword">for</span> j <span class="token operator">:=</span> <span class="token number">0</span><span class="token punctuation">;</span> j <span class="token operator">&lt;</span> <span class="token number">1000</span><span class="token punctuation">;</span> j<span class="token operator">++</span> <span class="token punctuation">&#123;</span>
+                mu<span class="token punctuation">.</span><span class="token function">Lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>       <span class="token comment">// 加锁</span>
+                count<span class="token operator">++</span>         <span class="token comment">// 修改共享变量</span>
+                mu<span class="token punctuation">.</span><span class="token function">Unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>     <span class="token comment">// 解锁</span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token punctuation">&#125;</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+    wg<span class="token punctuation">.</span><span class="token function">Wait</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+    fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"Mutex 最终结果:"</span><span class="token punctuation">,</span> count<span class="token punctuation">)</span> <span class="token comment">// 100000</span>
+<span class="token punctuation">&#125;</span></code></pre>
+<ol start="2">
+<li>channel 方式来模拟 Mutex 的效果实现这个计数，在 Go 语言中被称为 “令牌模式”（Token Pattern）。</li>
+</ol>
+<pre class="language-go" data-language="go"><code class="language-go"><span class="token keyword">package</span> main
+
+<span class="token keyword">import</span> <span class="token punctuation">(</span>
+    <span class="token string">"fmt"</span>
+    <span class="token string">"sync"</span>
+<span class="token punctuation">)</span>
+
+<span class="token keyword">var</span> count <span class="token builtin">int</span>
+lockCh <span class="token operator">:=</span> <span class="token function">make</span><span class="token punctuation">(</span><span class="token keyword">chan</span> <span class="token keyword">struct</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span> <span class="token comment">// 创建一个容量为 1 的 Channel 作为锁</span>
+lockCh <span class="token operator">&lt;-</span> <span class="token keyword">struct</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>             <span class="token comment">// 初始化放入一个令牌</span>
+
+<span class="token keyword">func</span> main <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+	<span class="token keyword">for</span> i <span class="token operator">:=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> <span class="token number">100</span><span class="token punctuation">;</span> i<span class="token operator">++</span> <span class="token punctuation">&#123;</span>
+	    wg<span class="token punctuation">.</span><span class="token function">Add</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span>
+    	<span class="token keyword">go</span> <span class="token keyword">func</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+			<span class="token keyword">defer</span> wg<span class="token punctuation">.</span><span class="token function">Done</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+			<span class="token keyword">for</span> j <span class="token operator">:=</span> <span class="token number">0</span><span class="token punctuation">;</span> j <span class="token operator">&lt;</span> loopCount<span class="token punctuation">;</span> j<span class="token operator">++</span> <span class="token punctuation">&#123;</span>
+	    		<span class="token operator">&lt;-</span>lockCh             <span class="token comment">// 获取锁：从 Channel 中取出令牌（如果没令牌，这里会自动阻塞等待）</span>
+        		count<span class="token operator">++</span>              <span class="token comment">// 临界区：执行累加操作</span>
+        		lockCh <span class="token operator">&lt;-</span> <span class="token keyword">struct</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span> <span class="token comment">// 释放锁：将令牌放回 Channel，唤醒其他等待的协程</span>
+			<span class="token punctuation">&#125;</span>
+		<span class="token punctuation">&#125;</span> <span class="token punctuation">(</span><span class="token punctuation">)</span>
+	<span class="token punctuation">&#125;</span>
+	wg<span class="token punctuation">.</span><span class="token function">Wait</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+	fmt<span class="token punctuation">.</span><span class="token function">Println</span><span class="token punctuation">(</span><span class="token string">"Channel lock 最终结果:"</span><span class="token punctuation">,</span> count<span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span></code></pre>
+<h2 id="针对上述两种实现方式进行基准测试"><a href="#针对上述两种实现方式进行基准测试" class="headerlink" title="针对上述两种实现方式进行基准测试"></a>针对上述两种实现方式进行基准测试</h2><pre class="language-go" data-language="go"><code class="language-go"><span class="token keyword">package</span> main
+
+<span class="token keyword">import</span> <span class="token string">"testing"</span>
+
+<span class="token keyword">func</span> <span class="token function">BenchmarkMutexCount</span><span class="token punctuation">(</span>b <span class="token operator">*</span>testing<span class="token punctuation">.</span>B<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+	<span class="token keyword">var</span> count <span class="token builtin">int</span>
+	<span class="token keyword">var</span> mu sync<span class="token punctuation">.</span>Mutex
+
+	b<span class="token punctuation">.</span><span class="token function">RunParallel</span><span class="token punctuation">(</span><span class="token keyword">func</span><span class="token punctuation">(</span>pb <span class="token operator">*</span>testing<span class="token punctuation">.</span>PB<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span> <span class="token comment">// 模拟多协程并发</span>
+		<span class="token keyword">for</span> pb<span class="token punctuation">.</span><span class="token function">Next</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+			mu<span class="token punctuation">.</span><span class="token function">Lock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+			count<span class="token operator">++</span>
+			mu<span class="token punctuation">.</span><span class="token function">Unlock</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+		<span class="token punctuation">&#125;</span>
+	<span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">func</span> <span class="token function">BenchmarkChannelCount</span><span class="token punctuation">(</span>b <span class="token operator">*</span>testing<span class="token punctuation">.</span>B<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">var</span> count <span class="token builtin">int</span>
+    lockCh <span class="token operator">:=</span> <span class="token function">make</span><span class="token punctuation">(</span><span class="token keyword">chan</span> <span class="token keyword">struct</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span> <span class="token number">1</span><span class="token punctuation">)</span>
+    lockCh <span class="token operator">&lt;-</span> <span class="token keyword">struct</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+	
+	b<span class="token punctuation">.</span><span class="token function">RunParallel</span><span class="token punctuation">(</span><span class="token keyword">func</span><span class="token punctuation">(</span>pb <span class="token operator">*</span>testing<span class="token punctuation">.</span>PB<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span> <span class="token comment">// 模拟多协程并发</span>
+		<span class="token keyword">for</span> pb<span class="token punctuation">.</span><span class="token function">Next</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+	    	<span class="token operator">&lt;-</span>lockCh
+        	count<span class="token operator">++</span>
+        	lockCh <span class="token operator">&lt;-</span> <span class="token keyword">struct</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+		<span class="token punctuation">&#125;</span>
+	<span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span></code></pre>
+<p><img src="/posts/go-channel-vs-mutex/mutex_vs_channel_bench.png" alt="mutex_vs_channel_bench"><br>从基准测试结果看在<strong>累加计数</strong>场景中，channel 的方式性能远远落后于 mutex 的传统方式将尽两倍。</p>
+<p>因为 Channel 的底层结构体内部本身就包含了一把互斥锁（hchan.mutex），外加一个环形缓冲区（buf）和两个等待队列（sendq、recvq）。</p>
+<ul>
+<li>当执行 <code>&lt;-lockCh</code>（获取锁）时，底层需要：获取 <code>hchan.mutex</code> -&gt; 检查缓冲区 -&gt; 从 buf 拷贝数据 -&gt; 释放锁。</li>
+<li>当你执行 <code>lockCh &lt;- struct{}{}</code>（释放锁）时，底层需要：再次获取 <code>hchan.mutex</code> -&gt; 检查缓冲区 -&gt; 将数据拷贝进 buf -&gt; 释放锁。</li>
+</ul>
+<p>用 Channel 模拟锁，本质上是在一把锁的外面，又套了一层更重的锁，并且每次进出还要经历数据的内存拷贝。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>用 Channel 模拟锁，是非常符合 Go 语言那句著名口号的：“不要通过共享内存来通信，而是通过通信来共享内存。”</p>
+<p>但在真实的工程实践中：</p>
+<ul>
+<li>Channel 的主场：跨协程传递数据、构建流水线、发送退出信号。</li>
+<li>Mutex 的主场：保护共享状态（比如缓存、计数器、Map）。Go 官方标准库里的 sync.Map、sync.Pool、net&#x2F;http 的连接管理，全都是用 Mutex 保护的，没有一个用 Channel 做状态保护。</li>
+</ul>
+<p>所以，用 Channel 模拟锁确实更有对比性，但它完美地证明了：在纯粹的“保护共享内存”这个场景下，专门设计的并发原语（Mutex&#x2F;Atomic）在性能上是碾压 Channel 的。</p>
+
+  </div>
+  
+
+
+  <nav class="pagination">
+    
+    
+      <a href="/posts/go-bench/">
+        <span>下一篇</span>
+        <strong>Go 语言测试框架 testing 基准测试</strong>
+      </a>
+    
+  </nav>
+
+
+</article>
+
+      </main>
+      <footer class="site-footer">
+  <p>OPS724 Blog</p>
+</footer>
+
+    </div>
+  </body>
+</html>

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+  
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>利用 Linux 网络虚拟化理解 VLAN 技术 | OPS724 Blog</title>
+  <meta name="description" content="A bilingual personal blog for life notes and technical writing.">
+  <link rel="icon" href="/favicon.ico?v=1787737230839" type="image/x-icon">
+  <link rel="shortcut icon" href="/favicon.ico?v=1787737230839" type="image/x-icon">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/content.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+
+  
+  <body>
+    <div class="site-shell">
+      
+
+<header class="site-header">
+  <div
+    class="site-header-inner"
+    
+  >
+    <div class="site-header-profile">
+      <a class="site-avatar-link" href="/">
+        
+          <img
+            class="site-header-avatar"
+            src="/images/avatar.png"
+            alt="OPS724 的小站"
+          >
+        
+      </a>
+      <div class="site-identity">
+        <a class="site-brand" href="/">
+          OPS724 的小站
+        </a>
+        <p class="site-tagline">记录生活、分享技术。</p>
+      </div>
+    </div>
+    <div class="site-header-actions">
+      <nav class="site-nav" aria-label="Main">
+        
+          
+          <a
+            href="/"
+            class="is-active"
+            aria-current=&#34;page&#34;
+          >技术</a>
+        
+          
+          <a
+            href="/life/"
+            class=""
+            
+          >生活</a>
+        
+          
+          <a
+            href="/about/"
+            class=""
+            
+          >关于</a>
+        
+          
+          <a
+            href="/archives/"
+            class=""
+            
+          >归档</a>
+        
+          
+          <a
+            href="/categories/"
+            class=""
+            
+          >分类</a>
+        
+          
+          <a
+            href="/tags/"
+            class=""
+            
+          >标签</a>
+        
+      </nav>
+      
+        
+<div class="language-switcher">
+  <a href="/posts/network-vlan/" class="is-active">
+    中
+  </a>
+  <a href="/en/" class="">
+    EN
+  </a>
+</div>
+
+      
+    </div>
+  </div>
+</header>
+
+      <main class="site-main">
+        <article class="article article-post">
+  <header class="article-header">
+    <h1>利用 Linux 网络虚拟化理解 VLAN 技术</h1>
+    <div class="post-meta">
+  <time datetime="2026-07-27T16:00:00.000Z">2026-07-28</time>
+  
+  
+    <span>
+      <a href="/categories/%E7%BD%91%E7%BB%9C%E6%8A%80%E6%9C%AF/">网络技术</a>
+    </span>
+  
+  
+    <span>
+      #<a href="/tags/vlan/">vlan</a>
+    </span>
+  
+</div>
+
+    
+<div class="language-switcher">
+  <a href="/posts/network-vlan/" class="is-active">
+    中
+  </a>
+  <a href="/en/" class="">
+    EN
+  </a>
+</div>
+
+  </header>
+  <div class="article-body">
+    <blockquote>
+<p>这是一篇写于当时语境下的技术记录。技术发展日新月异，若其中某些方法、结论或版本信息已经过时，就把它当作一次技术考古吧。</p>
+<p>硬件：Apple M4<br>系统：Mac OS Tahoe 26.3<br>VMware Fusion：Professional 26H1（25388279）<br>虚拟机 OS：Ubuntu 26.04 LTS</p>
+</blockquote>
+<p>完整的 VLAN 实验，只需一台 Linux 主机（物理机虚拟机均可），无需任何物理交换机。</p>
+<ul>
+<li>使用网络命名空间（Network Namespace）模拟多台主机。</li>
+<li>使用 Linux Bridge 模拟二层交换机。</li>
+</ul>
+<h2 id="实现拓扑与目标"><a href="#实现拓扑与目标" class="headerlink" title="实现拓扑与目标"></a>实现拓扑与目标</h2><h3 id="拓扑"><a href="#拓扑" class="headerlink" title="拓扑"></a>拓扑</h3><ul>
+<li>vlan 10：包含主机 <code>host1</code>、<code>host2</code>，子网 “10.0.10.0&#x2F;24”</li>
+<li>vlan 20：包含主机 <code>host3</code>，子网 “10.0.10.0&#x2F;24”</li>
+</ul>
+<h3 id="最终实验目标"><a href="#最终实验目标" class="headerlink" title="最终实验目标"></a>最终实验目标</h3><ol>
+<li>同一 VLAN 内主机能 ping 通（<code>host1</code> -&gt; <code>host2</code>）。</li>
+<li>不同 VLAN 内主机不能 ping 通（<code>host1</code> -&gt; <code>host3</code>）。</li>
+</ol>
+<h2 id="创建网桥并启用-VLAN-过滤（相当于二层交换机）"><a href="#创建网桥并启用-VLAN-过滤（相当于二层交换机）" class="headerlink" title="创建网桥并启用 VLAN 过滤（相当于二层交换机）"></a>创建网桥并启用 VLAN 过滤（相当于二层交换机）</h2><p>创建网桥（相当于交换机）。</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash"><span class="token comment"># 创建网桥，并开启 vlan_filtering 和 vlan_default_pvid</span>
+<span class="token function">sudo</span> <span class="token function">ip</span> <span class="token function">link</span> <span class="token function">add</span> br0 <span class="token builtin class-name">type</span> bridge vlan_filtering <span class="token number">1</span> vlan_default_pvid <span class="token number">1</span>
+<span class="token comment"># 启用网桥</span>
+<span class="token function">sudo</span> <span class="token function">ip</span> <span class="token function">link</span> <span class="token builtin class-name">set</span> br0 up</code></pre>
+<p><img src="/posts/network-vlan/linux_br_vlan_test_1.png" alt="linux_br_vlan_test_1"></p>
+<h2 id="创建网络命名空间（模拟主机）并连接至网桥"><a href="#创建网络命名空间（模拟主机）并连接至网桥" class="headerlink" title="创建网络命名空间（模拟主机）并连接至网桥"></a>创建网络命名空间（模拟主机）并连接至网桥</h2><p>创建 4 个主机命名空间，并通过 veth 对连接到对应的网桥。</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash"><span class="token comment"># 创建 host1（vlan10）</span>
+<span class="token comment">## 创建 host1 命名空间</span>
+<span class="token function">sudo</span> <span class="token function">ip</span> netns <span class="token function">add</span> host1
+<span class="token comment">## 创建一对虚拟以太网设备（veth pair），分别命名为 veth1a、veth1b，veth 总是成对出现，类似一根“虚拟网线”连接两端。</span>
+<span class="token function">sudo</span> <span class="token function">ip</span> <span class="token function">link</span> <span class="token function">add</span> veth1a <span class="token builtin class-name">type</span> veth peer name veth1b
+<span class="token comment">## 将 veth1b 这个网络接口设置为网桥 br-vlan10 的一个从属端口（slave）</span>
+<span class="token function">sudo</span> <span class="token function">ip</span> <span class="token function">link</span> <span class="token builtin class-name">set</span> veth1b master br0
+<span class="token comment">## 激活 veth1b 接口</span>
+<span class="token function">sudo</span> <span class="token function">ip</span> <span class="token function">link</span> <span class="token builtin class-name">set</span> veth1b up
+<span class="token comment">## 将 veth1a 这个接口移动到命名空间 host1 中</span>
+<span class="token function">sudo</span> <span class="token function">ip</span> <span class="token function">link</span> <span class="token builtin class-name">set</span> veth1a netns host1
+<span class="token comment">## 在命名空间 host1 内部执行 ip link set veth1a up，激活 veth1a</span>
+<span class="token function">sudo</span> <span class="token function">ip</span> netns <span class="token builtin class-name">exec</span> host1 <span class="token function">ip</span> <span class="token function">link</span> <span class="token builtin class-name">set</span> veth1a up
+<span class="token comment">## 在 host1 内部为 veth1a 接口分配 IP 地址。</span>
+<span class="token function">sudo</span> <span class="token function">ip</span> netns <span class="token builtin class-name">exec</span> host1 <span class="token function">ip</span> addr <span class="token function">add</span> <span class="token number">10.0</span>.10.1/24 dev veth1a
+
+<span class="token comment"># 创建 host2（vlan10）</span>
+<span class="token function">sudo</span> <span class="token function">ip</span> netns <span class="token function">add</span> host2
+<span class="token function">sudo</span> <span class="token function">ip</span> <span class="token function">link</span> <span class="token function">add</span> veth2a <span class="token builtin class-name">type</span> veth peer name veth2b
+<span class="token function">sudo</span> <span class="token function">ip</span> <span class="token function">link</span> <span class="token builtin class-name">set</span> veth2b master br0
+<span class="token function">sudo</span> <span class="token function">ip</span> <span class="token function">link</span> <span class="token builtin class-name">set</span> veth2b up
+<span class="token function">sudo</span> <span class="token function">ip</span> <span class="token function">link</span> <span class="token builtin class-name">set</span> veth2a netns host2
+<span class="token function">sudo</span> <span class="token function">ip</span> netns <span class="token builtin class-name">exec</span> host2 <span class="token function">ip</span> <span class="token function">link</span> <span class="token builtin class-name">set</span> veth2a up
+<span class="token function">sudo</span> <span class="token function">ip</span> netns <span class="token builtin class-name">exec</span> host2 <span class="token function">ip</span> addr <span class="token function">add</span> <span class="token number">10.0</span>.10.2/24 dev veth2a
+
+<span class="token comment"># 创建 host3（vlan20）</span>
+<span class="token function">sudo</span> <span class="token function">ip</span> netns <span class="token function">add</span> host3
+<span class="token function">sudo</span> <span class="token function">ip</span> <span class="token function">link</span> <span class="token function">add</span> veth3a <span class="token builtin class-name">type</span> veth peer name veth3b
+<span class="token function">sudo</span> <span class="token function">ip</span> <span class="token function">link</span> <span class="token builtin class-name">set</span> veth3b master br0
+<span class="token function">sudo</span> <span class="token function">ip</span> <span class="token function">link</span> <span class="token builtin class-name">set</span> veth3b up
+<span class="token function">sudo</span> <span class="token function">ip</span> <span class="token function">link</span> <span class="token builtin class-name">set</span> veth3a netns host3
+<span class="token function">sudo</span> <span class="token function">ip</span> netns <span class="token builtin class-name">exec</span> host3 <span class="token function">ip</span> <span class="token function">link</span> <span class="token builtin class-name">set</span> veth3a up
+<span class="token function">sudo</span> <span class="token function">ip</span> netns <span class="token builtin class-name">exec</span> host3 <span class="token function">ip</span> addr <span class="token function">add</span> <span class="token number">10.0</span>.10.3/24 dev veth3a</code></pre>
+<p><img src="/posts/network-vlan/linux_br_vlan_test_2.png" alt="linux_br_vlan_test_2"></p>
+<h2 id="测试下连通性"><a href="#测试下连通性" class="headerlink" title="测试下连通性"></a>测试下连通性</h2><p>当前未设置 VLAN，三台主机同广播域可以互通。</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash"><span class="token comment"># host1 -> host2</span>
+<span class="token function">sudo</span> <span class="token function">ip</span> netns <span class="token builtin class-name">exec</span> host1 <span class="token function">ping</span> <span class="token parameter variable">-c</span> <span class="token number">2</span> <span class="token number">10.0</span>.10.2
+<span class="token comment"># host2 -> host3</span>
+<span class="token function">sudo</span> <span class="token function">ip</span> netns <span class="token builtin class-name">exec</span> host2 <span class="token function">ping</span> <span class="token parameter variable">-c</span> <span class="token number">2</span> <span class="token number">10.0</span>.10.3
+<span class="token comment"># host3 -> host1</span>
+<span class="token function">sudo</span> <span class="token function">ip</span> netns <span class="token builtin class-name">exec</span> host3 <span class="token function">ping</span> <span class="token parameter variable">-c</span> <span class="token number">2</span> <span class="token number">10.0</span>.10.1</code></pre>
+<p><img src="/posts/network-vlan/linux_br_vlan_test_3.png" alt="linux_br_vlan_test_3"></p>
+<h2 id="配置端口-VLAN"><a href="#配置端口-VLAN" class="headerlink" title="配置端口 VLAN"></a>配置端口 VLAN</h2><p>这里有一个知识点，在交换机属于中 Access 接口是指连接终端（如 PC、服务器、打印机）的端口。它有两条核心行为：</p>
+<ol>
+<li>收包时：如果收到不带标签的普通数据帧，则打上该端口所属 VLAN 的标签（PVID）。</li>
+<li>发包时：在将数据帧发送给终端设备前，必须剥离 VLAN 标签（因为终端设备的网卡通常不识别也不处理 802.1Q 标签）。</li>
+</ol>
+<p>下面命令中 <code>pvid</code>、<code>untagged</code> 含义就是指定接口的 Access 行为。</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash"><span class="token comment"># 将 veth1b 划入 vlan 10，access 端口</span>
+<span class="token function">sudo</span> bridge vlan <span class="token function">add</span> dev veth1b vid <span class="token number">10</span> pvid <span class="token number">10</span> untagged <span class="token number">10</span>
+<span class="token comment"># 将 veth2b 划入 vlan 10，access 端口</span>
+<span class="token function">sudo</span> bridge vlan <span class="token function">add</span> dev veth2b vid <span class="token number">10</span> pvid <span class="token number">10</span> untagged <span class="token number">10</span>
+<span class="token comment"># 将 veth3b 划入 vlan 20，access 端口</span>
+<span class="token function">sudo</span> bridge vlan <span class="token function">add</span> dev veth3b vid <span class="token number">20</span> pvid <span class="token number">20</span> untagged <span class="token number">20</span>
+
+<span class="token comment"># 查看当前配置</span>
+bridge vlan show</code></pre>
+<p><img src="/posts/network-vlan/linux_br_vlan_test_4.png" alt="linux_br_vlan_test_4"></p>
+<h2 id="验证隔离效果"><a href="#验证隔离效果" class="headerlink" title="验证隔离效果"></a>验证隔离效果</h2><pre class="language-bash" data-language="bash"><code class="language-bash"><span class="token comment"># host1 -> host3 预期效果不通</span>
+<span class="token function">sudo</span> <span class="token function">ip</span> netns <span class="token builtin class-name">exec</span> host1 <span class="token function">ping</span> <span class="token parameter variable">-c</span> <span class="token number">2</span> <span class="token number">10.0</span>.10.3
+<span class="token comment"># host1 -> host2 预期效果通</span>
+<span class="token function">sudo</span> <span class="token function">ip</span> netns <span class="token builtin class-name">exec</span> host1 <span class="token function">ping</span> <span class="token parameter variable">-c</span> <span class="token number">2</span> <span class="token number">10.0</span>.10.2</code></pre>
+<p><img src="/posts/network-vlan/linux_br_vlan_test_5.png" alt="linux_br_vlan_test_5"><br>在这个实验中：</p>
+<ul>
+<li>veth1b 配置为 <code>pvid 10</code>、<code>untagged 10</code>，但是 host1 的网卡 veth1a 完全感知不到 VLAN 标签，它只觉得自己在普通的 10.0.10.x 网段里通信。</li>
+<li>veth3b 配置为 <code>pvid 20</code>、<code>untagged 20</code>，host3 的网卡 veth3a 也感知不到标签，但其属于 VLAN 20。</li>
+</ul>
+<p>因为网桥内部严格检查 VLAN ID，所以 host1 发出的无标签帧进入网桥后被标记为 VLAN 10，无法转发到只允许 VLAN 20 的 veth3b 端口，实现了完美隔离。</p>
+<h2 id="VLAN-间通信"><a href="#VLAN-间通信" class="headerlink" title="VLAN 间通信"></a>VLAN 间通信</h2><p>在上述实验基础上，通过单臂路由实现 VLAN 间的通信。</p>
+<h3 id="修改当前环境中-VLAN-20-host3-IP"><a href="#修改当前环境中-VLAN-20-host3-IP" class="headerlink" title="修改当前环境中 VLAN 20 host3 IP"></a>修改当前环境中 VLAN 20 host3 IP</h3><pre class="language-bash" data-language="bash"><code class="language-bash"><span class="token comment"># 删除 host3 当前 IP</span>
+<span class="token function">sudo</span> <span class="token function">ip</span> netns <span class="token builtin class-name">exec</span> host3 <span class="token function">ip</span> addr del <span class="token number">10.0</span>.10.3/24 dev veth3a
+<span class="token comment"># 配置新 IP，VLAN 20 网段 10.0.20.x/24</span>
+<span class="token function">sudo</span> <span class="token function">ip</span> netns <span class="token builtin class-name">exec</span> host3 <span class="token function">ip</span> addr <span class="token function">add</span> <span class="token number">10.0</span>.20.1/24 dev veth3a</code></pre>
+<p><img src="/posts/network-vlan/linux_br_vlan_test_6.png" alt="linux_br_vlan_test_6"><br><img src="/posts/network-vlan/linux_br_vlan_test_7.png" alt="linux_br_vlan_test_7"></p>
+<h3 id="创建路由命名空间及-Trunk-链路"><a href="#创建路由命名空间及-Trunk-链路" class="headerlink" title="创建路由命名空间及 Trunk 链路"></a>创建路由命名空间及 Trunk 链路</h3><p>创建一个名为 <code>router</code> 的命名空间，并用一根 veth “网线” 将它连接到网桥 br0 上。这根网线在网桥侧配置为 Trunk 口，允许 VLAN 10 和 20 的标签通过。</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash"><span class="token comment"># 创建路由器命名空间</span>
+<span class="token function">sudo</span> <span class="token function">ip</span> netns <span class="token function">add</span> router
+<span class="token comment"># 创建 veth 对</span>
+<span class="token function">sudo</span> <span class="token function">ip</span> <span class="token function">link</span> <span class="token function">add</span> veth-s-r <span class="token builtin class-name">type</span> veth peer name veth-r-s
+<span class="token comment"># 将 veth-s-r 接入网桥 br0</span>
+<span class="token function">sudo</span> <span class="token function">ip</span> <span class="token function">link</span> <span class="token builtin class-name">set</span> veth-s-r master br0
+<span class="token function">sudo</span> <span class="token function">ip</span> <span class="token function">link</span> <span class="token builtin class-name">set</span> veth-s-r up
+<span class="token comment"># 将 veth-r-s 移入路由器命名空间</span>
+<span class="token function">sudo</span> <span class="token function">ip</span> <span class="token function">link</span> <span class="token builtin class-name">set</span> veth-r-s netns router
+<span class="token function">sudo</span> <span class="token function">ip</span> netns <span class="token builtin class-name">exec</span> router <span class="token function">ip</span> <span class="token function">link</span> <span class="token builtin class-name">set</span> veth-r-s up</code></pre>
+<h3 id="配置网桥侧-Trunk-口，路由器侧子接口"><a href="#配置网桥侧-Trunk-口，路由器侧子接口" class="headerlink" title="配置网桥侧 Trunk 口，路由器侧子接口"></a>配置网桥侧 Trunk 口，路由器侧子接口</h3><p>网桥侧：将 veth-s-r 设为 Trunk 口，允许 VLAN 10 和 20 通过（不加 <code>untagged</code>，保留标签）。</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash"><span class="token comment"># 允许 VLAN 10 和 VLAN 20 的带标签帧通过</span>
+<span class="token function">sudo</span> bridge vlan <span class="token function">add</span> dev veth-s-r vid <span class="token number">10</span>
+<span class="token function">sudo</span> bridge vlan <span class="token function">add</span> dev veth-s-r vid <span class="token number">20</span></code></pre>
+
+<p>路由器命名空间内部：在 veth-r-s 上，创建两个 VLAN 子接口，分别对应 VLAN 10 和 VLAN 20，并配置网关 IP。</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash"><span class="token comment"># 创建 VLAN 10 子接口（接收打了 10 标签的帧）</span>
+<span class="token function">sudo</span> <span class="token function">ip</span> netns <span class="token builtin class-name">exec</span> router <span class="token function">ip</span> <span class="token function">link</span> <span class="token function">add</span> <span class="token function">link</span> veth-r-s name veth-r-s.10 <span class="token builtin class-name">type</span> vlan <span class="token function">id</span> <span class="token number">10</span>
+<span class="token function">sudo</span> <span class="token function">ip</span> netns <span class="token builtin class-name">exec</span> router <span class="token function">ip</span> <span class="token function">link</span> <span class="token builtin class-name">set</span> veth-r-s.10 up
+<span class="token function">sudo</span> <span class="token function">ip</span> netns <span class="token builtin class-name">exec</span> router <span class="token function">ip</span> addr <span class="token function">add</span> <span class="token number">10.0</span>.10.254/24 dev veth-r-s.10
+
+<span class="token comment"># 创建 VLAN 20 子接口（接收打了 20 标签的帧）</span>
+<span class="token function">sudo</span> <span class="token function">ip</span> netns <span class="token builtin class-name">exec</span> router <span class="token function">ip</span> <span class="token function">link</span> <span class="token function">add</span> <span class="token function">link</span> veth-r-s name veth-r-s.20 <span class="token builtin class-name">type</span> vlan <span class="token function">id</span> <span class="token number">20</span>
+<span class="token function">sudo</span> <span class="token function">ip</span> netns <span class="token builtin class-name">exec</span> router <span class="token function">ip</span> <span class="token function">link</span> <span class="token builtin class-name">set</span> veth-r-s.20 up
+<span class="token function">sudo</span> <span class="token function">ip</span> netns <span class="token builtin class-name">exec</span> router <span class="token function">ip</span> addr <span class="token function">add</span> <span class="token number">10.0</span>.20.254/24 dev veth-r-s.20</code></pre>
+<h3 id="开启路由转发并配置主机网关"><a href="#开启路由转发并配置主机网关" class="headerlink" title="开启路由转发并配置主机网关"></a>开启路由转发并配置主机网关</h3><p>开启路由转发：让路由器命名空间具备转发 IP 包的能力。</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash"><span class="token function">sudo</span> <span class="token function">ip</span> netns <span class="token builtin class-name">exec</span> router <span class="token function">sysctl</span> <span class="token parameter variable">-w</span> <span class="token assign-left variable">net.ipv4.ip_forward</span><span class="token operator">=</span><span class="token number">1</span></code></pre>
+<p>配置主机默认网关：让各 VLAN 内的主机把数据包发给路由器。</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash"><span class="token comment"># host1 和 host2（VLAN 10）的网关指向 10.0.10.254</span>
+<span class="token function">sudo</span> <span class="token function">ip</span> netns <span class="token builtin class-name">exec</span> host1 <span class="token function">ip</span> route <span class="token function">add</span> default via <span class="token number">10.0</span>.10.254
+<span class="token function">sudo</span> <span class="token function">ip</span> netns <span class="token builtin class-name">exec</span> host2 <span class="token function">ip</span> route <span class="token function">add</span> default via <span class="token number">10.0</span>.10.254
+
+<span class="token comment"># host3 的网关指向 10.0.20.254</span>
+<span class="token function">sudo</span> <span class="token function">ip</span> netns <span class="token builtin class-name">exec</span> host3 <span class="token function">ip</span> route <span class="token function">add</span> default via <span class="token number">10.0</span>.20.254</code></pre>
+<h3 id="验证-VLAN-间通信"><a href="#验证-VLAN-间通信" class="headerlink" title="验证 VLAN 间通信"></a>验证 VLAN 间通信</h3><p>从 host1（VLAN 10）ping host3（VLAN 20），成功。</p>
+<pre class="language-bash" data-language="bash"><code class="language-bash"><span class="token function">sudo</span> <span class="token function">ip</span> netns <span class="token builtin class-name">exec</span> host1 <span class="token function">ping</span> <span class="token parameter variable">-c</span> <span class="token number">2</span> <span class="token number">10.0</span>.20.1</code></pre>
+<p><img src="/posts/network-vlan/linux_br_vlan_test_8.png" alt="linux_br_vlan_test_8"></p>
+
+  </div>
+  
+
+
+  <nav class="pagination">
+    
+      <a href="/posts/go-gmp/">
+        <span>上一篇</span>
+        <strong>理解 Go 语言 GMP 高校调度模型</strong>
+      </a>
+    
+    
+      <a href="/posts/python-gil/">
+        <span>下一篇</span>
+        <strong>GIL Python 全局解释器锁</strong>
+      </a>
+    
+  </nav>
+
+
+</article>
+
+      </main>
+      <footer class="site-footer">
+  <p>OPS724 Blog</p>
+</footer>
+
+    </div>
+  </body>
+</html>
